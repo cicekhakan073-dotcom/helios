@@ -8,7 +8,13 @@
 import { PoolV2, PoolUser, type Pool, type Reserve } from "@blend-capital/blend-sdk";
 
 import { getAddresses } from "../addresses";
-import { effectiveCollateral, effectiveLiability, healthFactorBps, riskBand, type HfBand } from "../hf";
+import {
+  effectiveCollateral,
+  effectiveLiability,
+  healthFactorBps,
+  riskBand,
+  type HfBand,
+} from "../hf";
 
 import { getBlendNetwork } from "./network";
 
@@ -64,9 +70,14 @@ export async function loadPoolReserves(): Promise<ReserveSnapshot[]> {
 
 export interface UserPositionSnapshot {
   user: string;
-  /** Reserve index → raw collateral (b-token balance). */
+  /**
+   * Reserve index → collateral UNDERLYING stroops (b-token DEĞİL).
+   * PROMPT 23-FIX (2026-06-03): Blend `positions.collateral` ham b-token tutar;
+   * `reserve.toAssetFromBToken` ile underlying'e çevrilir. KPI/close/HF underlying ister
+   * (close request amount = underlying; ham b-token geçmek eksik kapatır — canlı doğrulandı).
+   */
   collateral: Record<number, bigint>;
-  /** Reserve index → raw debt (d-token balance). */
+  /** Reserve index → debt UNDERLYING stroops (d-token DEĞİL; `toAssetFromDToken`). */
   liabilities: Record<number, bigint>;
   /** Pozisyon var mı? */
   hasPosition: boolean;
@@ -78,13 +89,23 @@ export async function loadUserPosition(userAddress: string): Promise<UserPositio
   const pool = await loadPool();
   const poolUser: PoolUser = await PoolUser.load(network, blend.pool, pool, userAddress);
 
+  // Pozisyon map'leri reserve INDEX ile anahtarlı; çevrim için index→Reserve.
+  const reservesByIndex = new Map<number, Reserve>();
+  for (const reserve of pool.reserves.values()) {
+    reservesByIndex.set(reserve.config.index, reserve);
+  }
+
   const collateral: Record<number, bigint> = {};
   const liabilities: Record<number, bigint> = {};
-  for (const [idx, value] of poolUser.positions.collateral.entries()) {
-    collateral[idx] = value;
+  for (const [idx, bTokens] of poolUser.positions.collateral.entries()) {
+    const reserve = reservesByIndex.get(idx);
+    // Reserve bulunamazsa ham bırakma yerine çeviremediğimizi belli et: ham düşse
+    // bile underlying'e en yakın = ham (rate≈1 fallback). Reserve normalde bulunur.
+    collateral[idx] = reserve ? reserve.toAssetFromBToken(bTokens) : bTokens;
   }
-  for (const [idx, value] of poolUser.positions.liabilities.entries()) {
-    liabilities[idx] = value;
+  for (const [idx, dTokens] of poolUser.positions.liabilities.entries()) {
+    const reserve = reservesByIndex.get(idx);
+    liabilities[idx] = reserve ? reserve.toAssetFromDToken(dTokens) : dTokens;
   }
   return {
     user: userAddress,
@@ -118,14 +139,15 @@ export function computeUserHfBps(
   for (const r of reserves) {
     const price = prices.get(r.asset);
     if (price == null) continue;
-    const rawColl = position.collateral[r.index] ?? 0n;
-    const rawLiab = position.liabilities[r.index] ?? 0n;
-    if (rawColl > 0n) {
-      const eff = effectiveCollateral(rawColl, r.cFactorBps);
+    // PROMPT 23-FIX: position.collateral/liabilities artık UNDERLYING (b/d-token değil).
+    const underlyingColl = position.collateral[r.index] ?? 0n;
+    const underlyingLiab = position.liabilities[r.index] ?? 0n;
+    if (underlyingColl > 0n) {
+      const eff = effectiveCollateral(underlyingColl, r.cFactorBps);
       totalCollateralBase += eff * price;
     }
-    if (rawLiab > 0n) {
-      const eff = effectiveLiability(rawLiab, r.lFactorBps);
+    if (underlyingLiab > 0n) {
+      const eff = effectiveLiability(underlyingLiab, r.lFactorBps);
       totalLiabilityBase += eff * price;
     }
   }

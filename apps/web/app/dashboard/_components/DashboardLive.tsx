@@ -55,8 +55,19 @@ interface Props {
 interface ResolvedPosition {
   assetId: AssetId;
   reserve: ReserveSnapshot;
-  collateralRaw: bigint;
-  debtRaw: bigint;
+  /** UNDERLYING stroops (loadUserPosition b/d-token→underlying çevirir; PROMPT 23-FIX). */
+  collateralUnderlying: bigint;
+  debtUnderlying: bigint;
+}
+
+/**
+ * Tam-kapatma tamponu: underlying borç/teminata küçük pay ekle ki read↔submit arası
+ * faiz tahakkukuna rağmen Blend bakiyeye KAPAYIP tam kapatsın. Over-buffer zararsız —
+ * Blend mevcut bakiyeye cap'ler (canlı doğrulandı 2026-06-03). i128::MAX YASAK (overflow→trap).
+ */
+const CLOSE_BUFFER_BPS = 200n; // +%2
+function withCloseBuffer(amount: bigint): bigint {
+  return (amount * (10_000n + CLOSE_BUFFER_BPS)) / 10_000n;
 }
 
 /** Single-asset MVP — kullanıcının ilk non-zero collateral'i. */
@@ -72,7 +83,7 @@ function resolvePosition(
     if (c === 0n && d === 0n) continue;
     const assetId = ASSETS.find((id) => sacAddressFor(id) === r.asset);
     if (!assetId) continue;
-    return { assetId, reserve: r, collateralRaw: c, debtRaw: d };
+    return { assetId, reserve: r, collateralUnderlying: c, debtUnderlying: d };
   }
   return null;
 }
@@ -104,8 +115,8 @@ export function DashboardLive({ address }: Props) {
     return computeUserHfBps(
       {
         user: address,
-        collateral: { [resolved.reserve.index]: resolved.collateralRaw },
-        liabilities: { [resolved.reserve.index]: resolved.debtRaw },
+        collateral: { [resolved.reserve.index]: resolved.collateralUnderlying },
+        liabilities: { [resolved.reserve.index]: resolved.debtUnderlying },
         hasPosition: true,
       },
       reservesQ.data,
@@ -170,10 +181,12 @@ function KpiGrid({
   leverageBps,
   leverageSource,
 }: KpiProps) {
-  const collateralLabel = formatPrincipal(resolved.collateralRaw, meta.decimals, 4);
-  const debtLabel = formatPrincipal(resolved.debtRaw, meta.decimals, 4);
+  const collateralLabel = formatPrincipal(resolved.collateralUnderlying, meta.decimals, 4);
+  const debtLabel = formatPrincipal(resolved.debtUnderlying, meta.decimals, 4);
   const equityRaw =
-    resolved.collateralRaw - resolved.debtRaw > 0n ? resolved.collateralRaw - resolved.debtRaw : 0n;
+    resolved.collateralUnderlying - resolved.debtUnderlying > 0n
+      ? resolved.collateralUnderlying - resolved.debtUnderlying
+      : 0n;
   const equityLabel = formatPrincipal(equityRaw, meta.decimals, 4);
   const hfFloat = hf?.hfBps != null ? hfBpsToFloat(hf.hfBps) : null;
   const leverageLabel = leverageBps != null ? `${(leverageBps / 100).toFixed(2)}×` : "—";
@@ -247,11 +260,11 @@ function PositionDetail({
   // raw + factor'lerle approximate üret.
   const collateralBase =
     hf?.totalCollateralBase ??
-    effectiveCollateral(resolved.collateralRaw, resolved.reserve.cFactorBps);
+    effectiveCollateral(resolved.collateralUnderlying, resolved.reserve.cFactorBps);
   const liabilityBase =
     hf?.totalLiabilityBase ??
-    (resolved.debtRaw > 0n
-      ? effectiveLiability(resolved.debtRaw, resolved.reserve.lFactorBps)
+    (resolved.debtUnderlying > 0n
+      ? effectiveLiability(resolved.debtUnderlying, resolved.reserve.lFactorBps)
       : 0n);
 
   return (
@@ -268,12 +281,12 @@ function PositionDetail({
         <DetailRow label="Asset" value={meta.label} />
         <DetailRow
           label="Collateral (b-token underlying)"
-          value={`${formatPrincipal(resolved.collateralRaw, meta.decimals, 4)} ${resolved.assetId}`}
+          value={`${formatPrincipal(resolved.collateralUnderlying, meta.decimals, 4)} ${resolved.assetId}`}
           mono
         />
         <DetailRow
           label="Borç (d-token underlying)"
-          value={`${formatPrincipal(resolved.debtRaw, meta.decimals, 4)} ${resolved.assetId}`}
+          value={`${formatPrincipal(resolved.debtUnderlying, meta.decimals, 4)} ${resolved.assetId}`}
           mono
         />
         <DetailRow
@@ -346,12 +359,14 @@ function CloseFlow({
   const [result, setResult] = useState<SignAndSendResult | null>(null);
 
   const closeParams = useMemo(() => {
-    if (resolved.debtRaw <= 0n || resolved.collateralRaw <= 0n) return null;
+    if (resolved.debtUnderlying <= 0n || resolved.collateralUnderlying <= 0n) return null;
+    // Tam-kapatma: underlying + tampon (Blend cap'ler). collateral ≥ debt invariyantı
+    // korunur (collateral > debt + ikisi de aynı oranla buffer'lanır).
     return {
       userAddress: address,
       assetId: resolved.assetId,
-      debtAmount: resolved.debtRaw,
-      collateralAmount: resolved.collateralRaw,
+      debtAmount: withCloseBuffer(resolved.debtUnderlying),
+      collateralAmount: withCloseBuffer(resolved.collateralUnderlying),
     };
   }, [address, resolved]);
 
@@ -405,11 +420,11 @@ function CloseFlow({
         <span className="text-caption text-text-low">
           Borç:{" "}
           <code className="font-mono">
-            {formatPrincipal(resolved.debtRaw, meta.decimals, 4)} {resolved.assetId}
+            {formatPrincipal(resolved.debtUnderlying, meta.decimals, 4)} {resolved.assetId}
           </code>{" "}
           · Çekiş:{" "}
           <code className="font-mono">
-            {formatPrincipal(resolved.collateralRaw, meta.decimals, 4)} {resolved.assetId}
+            {formatPrincipal(resolved.collateralUnderlying, meta.decimals, 4)} {resolved.assetId}
           </code>
         </span>
       </header>
