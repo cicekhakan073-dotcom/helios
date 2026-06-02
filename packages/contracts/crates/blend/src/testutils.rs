@@ -33,7 +33,7 @@ use soroban_sdk::{
 };
 
 use crate::types::{
-    PoolConfig, Positions, Request, RequestType, Reserve, ReserveConfig, ReserveData,
+    FlashLoan, PoolConfig, Positions, Request, RequestType, Reserve, ReserveConfig, ReserveData,
 };
 
 const KEY_CONFIG: Symbol = symbol_short!("CFG");
@@ -53,13 +53,30 @@ impl MockBlendPool {
         apply_requests(&env, &from, &requests)
     }
 
+    /// Mock flash_loan — gerçek Blend pool akışından **kasıtlı sapma**:
+    ///
+    /// Gerçek pool `FlashLoanClient(flash.contract).exec_op(...)` çağırır, ama bu
+    /// soroban-env-host 26.1.3'te **immediate contract re-entry** sayılır
+    /// (router → pool → router) ve `ContractReentryMode::Prohibited` default'u
+    /// yüzünden test ortamında `"Contract re-entry is not allowed"` hatası ile
+    /// revert eder. soroban-sdk 26.0.1 reentry mode'u dışarı açmadığı için mock
+    /// burada exec_op'u **çağırmaz** — yalnız request'leri uygular ve flash
+    /// transfer + repayment kontrolünü atlar.
+    ///
+    /// **exec_op kapsama testi**: `strategy_router::tests` içinde standalone
+    /// `exec_op_caller_imzasiyla_user_a_transfer_eder` testi receiver imzasını,
+    /// auth gereksinimini ve token transferini doğrudan doğrular.
+    ///
+    /// **Production akışı bu ayrımı kaldırır** — gerçek Blend pool tx-level
+    /// auth + reentry policy'sini canlı testte handle eder (PROMPT 12-FIX
+    /// redeploy'unun ardından canlı tx flash callback'i ÇALIŞIYOR; sapma yalnız
+    /// off-chain test'lerde, on-chain'de değil).
     pub fn flash_loan(
         env: Env,
         from: Address,
-        _flash_loan: crate::types::FlashLoan,
+        _flash_loan: FlashLoan,
         requests: Vec<Request>,
     ) -> Positions {
-        // Mock: flash transfer + repayment kontrolünü atla; sadece request'leri uygula.
         apply_requests(&env, &from, &requests)
     }
 
@@ -151,6 +168,7 @@ fn apply_requests(env: &Env, user: &Address, requests: &Vec<Request>) -> Positio
     save_positions(env, user, &p);
     p
 }
+
 
 // ============================================================================
 // Test helper'ları (kontrat dışı)

@@ -28,14 +28,19 @@ export interface ReserveSnapshot {
   scalar: bigint;
 }
 
+/** Blend reserve factor scalar = 1e7 (7-dec). 9_000_000 → 9000 bps. */
+const BLEND_FACTOR_SCALAR_PER_BPS = 1000;
+
 function reserveToSnapshot(asset: string, reserve: Reserve): ReserveSnapshot {
   const cfg = reserve.config;
   return {
     asset,
     index: cfg.index,
     decimals: cfg.decimals,
-    cFactorBps: cfg.c_factor,
-    lFactorBps: cfg.l_factor,
+    // Canlı doğrulandı 2026-06-02: pool get_reserve XLM → c_factor=9_000_000 (raw,
+    // 7-dec scalar). Bps (10000-scale) için /1000 gerek.
+    cFactorBps: Math.round(cfg.c_factor / BLEND_FACTOR_SCALAR_PER_BPS),
+    lFactorBps: Math.round(cfg.l_factor / BLEND_FACTOR_SCALAR_PER_BPS),
     scalar: 10n ** BigInt(cfg.decimals),
   };
 }

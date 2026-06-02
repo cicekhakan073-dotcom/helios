@@ -93,10 +93,14 @@ export async function buildOpenPositionTx(params: BuildOpenPositionParams) {
   if (principal <= 0n) {
     throw new OpenPositionBuildError("INVALID_INPUT", "Principal sıfır veya negatif olamaz.");
   }
-  if (leverageBps < 100 || leverageBps > 500) {
+  // 200 bps = 2x — same-asset MVP güvenli cap (XLM-bound, HF(2x)=1.62 ≥ 1.30).
+  // Kontrat init max_leverage_bps=500 olsa da SDK 200'de kesiyor; 3x+ açılışta
+  // Blend #1205 InvalidHf ile zaten revert eder, kullanıcıya tx ücreti yedirmenin
+  // anlamı yok.
+  if (leverageBps < 100 || leverageBps > 200) {
     throw new OpenPositionBuildError(
       "INVALID_INPUT",
-      "Leverage 100..500 (1×..5×) aralığında olmalı.",
+      "Leverage 100..200 (1×..2×) aralığında olmalı (same-asset MVP güvenli sınır).",
     );
   }
 

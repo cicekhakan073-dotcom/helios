@@ -19,7 +19,15 @@ const DEFAULT_ASSET: AssetId = "USDC";
 const DEFAULT_LEVERAGE_BPS = 100; // 1x (slider başlangıcı)
 
 export const MIN_LEVERAGE_BPS = 100;
-export const MAX_LEVERAGE_BPS = 500; // 5x (strategy_router.init max_leverage_bps)
+/** Same-asset MVP güvenli üst sınır (canlı doğrulandı 2026-06-02 — bkz.
+ *  ROADMAP §6.8 + ROADMAP-CHANGELOG "Same-asset leverage cap"):
+ *  XLM reserve c=l=0.90 → HF(L) = 0.81·L/(L-1).
+ *    L=2x ⇒ HF=1.62 (≥ 1.30 ✓ guvenli)
+ *    L=3x ⇒ HF=1.215 (< 1.30 ❌ Blend #1205 InvalidHf reverts)
+ *  Pratik cap 200 bps (2x). USDC daha yüksek (≈3.25x) tahammül eder ama
+ *  global UI üst sınırı XLM ile kısıtlanır (en zayıf halka). PROMPT 24+
+ *  per-asset cap incelenebilir. */
+export const MAX_LEVERAGE_BPS = 200; // 2x — same-asset safe cap (XLM-bound)
 export const LEVERAGE_STEP_BPS = 25; // 0.25x
 
 interface WizardState {

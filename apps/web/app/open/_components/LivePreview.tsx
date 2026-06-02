@@ -10,20 +10,36 @@ import {
   HfError,
   liquidationPrice as calcLiquidationPrice,
   riskBand,
+  sacAddressFor,
   usePoolOraclePrice,
+  usePoolReserves,
+  type AssetId,
+  type ReserveSnapshot,
 } from "@helios/sdk";
 import { HealthFactorBadge, RiskGauge, StatTile } from "@helios/ui";
 import { useMemo } from "react";
 
 import { formatPrincipal, parsePrincipal, useWizard } from "../_state/wizard-store";
 
-// MVP Blend reserve assumption — gerçek değerler PROMPT 24 sonrası canlı pool'dan
-// okunacak. Bunlar `default_reserve_config()` mock'ıyla aynı (c=0.85, l=0.80).
-const ASSUMED_C_FACTOR_BPS = 8500;
-const ASSUMED_L_FACTOR_BPS = 8000;
+// Fallback faktörler — canlı reserve yüklenene kadar. Konservatif kalıp
+// kullanıcıyı yanıltmamak için Blend testnet pool'unda gözlenen en düşük
+// değerlerle yaklaşık (gerçek değer reserve-by-reserve yüklenip değiştirilir).
+const FALLBACK_C_FACTOR_BPS = 8500;
+const FALLBACK_L_FACTOR_BPS = 8000;
+
+function pickReserveForAsset(
+  reserves: ReserveSnapshot[] | undefined,
+  assetId: AssetId,
+): ReserveSnapshot | null {
+  if (!reserves) return null;
+  const sac = sacAddressFor(assetId);
+  return reserves.find((r) => r.asset === sac) ?? null;
+}
 
 const MIN_OPEN_HF_BPS = 130n; // strategy_router.init min_open_hf_bps (1.30)
-const MAX_LEVERAGE_BPS_GUARD = 500; // strategy_router.init max_leverage_bps
+// Same-asset MVP güvenli cap — XLM-bound (HF(2x)=1.62 vs HF(3x)=1.215 → #1205).
+// Detay: ROADMAP-CHANGELOG "Same-asset leverage cap" + wizard-store.ts.
+const MAX_LEVERAGE_BPS_GUARD = 200;
 
 export interface LivePreviewResult {
   hasInputs: boolean;
@@ -48,6 +64,12 @@ export function useLivePreview(): LivePreviewResult {
   // (CAZOKR2Y) kullanılır. Reflector V3 instance'ları referans olarak ayrı kalır.
   const oracleQ = usePoolOraclePrice(assetId);
   const oraclePrice = oracleQ.data?.price ?? null;
+
+  // Canlı c/l faktörleri — Blend get_reserve'den, asset bazında.
+  const reservesQ = usePoolReserves();
+  const reserve = pickReserveForAsset(reservesQ.data, assetId);
+  const cFactorBps = reserve?.cFactorBps ?? FALLBACK_C_FACTOR_BPS;
+  const lFactorBps = reserve?.lFactorBps ?? FALLBACK_L_FACTOR_BPS;
 
   return useMemo(() => {
     const errors: string[] = [];
@@ -95,8 +117,8 @@ export function useLivePreview(): LivePreviewResult {
     let liqDistancePct: number | null = null;
 
     try {
-      const effColl = effectiveCollateral(totalCollateral, ASSUMED_C_FACTOR_BPS);
-      const effLiab = effectiveLiability(borrowAmount, ASSUMED_L_FACTOR_BPS);
+      const effColl = effectiveCollateral(totalCollateral, cFactorBps);
+      const effLiab = effectiveLiability(borrowAmount, lFactorBps);
       hfBps = healthFactorBps(effColl, effLiab);
       hfBand = riskBand(hfBps);
 
@@ -133,7 +155,7 @@ export function useLivePreview(): LivePreviewResult {
       errors,
       guardsPassed,
     };
-  }, [principalRaw, leverageBps, meta.decimals, oraclePrice]);
+  }, [principalRaw, leverageBps, meta.decimals, oraclePrice, cFactorBps, lFactorBps]);
 }
 
 /** Yan panel — canlı türetilen metrikler + risk göstergesi. */

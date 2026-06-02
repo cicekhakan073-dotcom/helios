@@ -4,7 +4,7 @@ import { ASSET_META, hfBpsToFloat } from "@helios/sdk";
 import { Button } from "@helios/ui";
 import Link from "next/link";
 
-import { formatLeverage, formatPrincipal, useWizard } from "../_state/wizard-store";
+import { formatLeverage, formatPrincipal, MAX_LEVERAGE_BPS, useWizard } from "../_state/wizard-store";
 
 import type { LivePreviewResult } from "./LivePreview";
 
@@ -29,8 +29,8 @@ export function SummaryPanel({ preview }: Props) {
   let disabledReason: string | null = null;
   if (!preview.hasInputs) {
     disabledReason = "Principal değeri girin";
-  } else if (leverageBps > 500) {
-    disabledReason = "Leverage 5× üst sınırı aşıyor";
+  } else if (leverageBps > MAX_LEVERAGE_BPS) {
+    disabledReason = `Leverage ${(MAX_LEVERAGE_BPS / 100).toFixed(2)}× üst sınırı aşıyor`;
   } else if (hfFloat != null && hfFloat < 1.3) {
     disabledReason = "Açılış HF minimum 1.30 olmalı";
   } else if (preview.errors.length > 0) {
