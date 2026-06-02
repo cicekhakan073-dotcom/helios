@@ -126,8 +126,11 @@ export async function POST(req: Request) {
       resultCodes && typeof resultCodes === "object"
         ? (resultCodes as Record<string, unknown>)["result_codes"]
         : null;
+    // Friendbot "zaten fonlu" iki biçimde döner (canlı doğrulandı 2026-06-03):
+    //  - eski: extras.result_codes → "op_already_exists"
+    //  - güncel: top-level detail → "account already funded to starting balance"
     const opStr = JSON.stringify(opCodes ?? detail ?? null);
-    if (opStr.includes("op_already_exists")) {
+    if (opStr.includes("op_already_exists") || opStr.includes("already funded")) {
       return NextResponse.json({
         ok: true,
         alreadyFunded: true,
