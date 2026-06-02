@@ -40,7 +40,7 @@
 use blend::actions::{repay_req, supply_collateral_req, withdraw_collateral_req};
 use blend::{FlashLoan, PoolClient, Positions, Request};
 use shared::HeliosError;
-use soroban_sdk::{contract, contractimpl, symbol_short, token, Address, Env, Symbol, Vec};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, Symbol, Vec};
 
 // ============================================================================
 // Storage anahtarları
@@ -52,6 +52,7 @@ const KEY_POOL: Symbol = symbol_short!("pool");
 const KEY_MAX_LEV: Symbol = symbol_short!("max_lev");
 const KEY_MIN_HF: Symbol = symbol_short!("min_hf");
 const KEY_FLASH_BPS: Symbol = symbol_short!("flash_bps");
+const KEY_RECEIVER: Symbol = symbol_short!("receiver");
 
 // ============================================================================
 // Sabitler
@@ -93,6 +94,14 @@ fn pool_address(env: &Env) -> Result<Address, HeliosError> {
     env.storage()
         .instance()
         .get(&KEY_POOL)
+        .ok_or(HeliosError::NotInitialized)
+}
+
+/// Flash receiver kontratı (router'dan AYRI — re-entry önler, AUDIT 2026-06-03).
+fn receiver_address(env: &Env) -> Result<Address, HeliosError> {
+    env.storage()
+        .instance()
+        .get(&KEY_RECEIVER)
         .ok_or(HeliosError::NotInitialized)
 }
 
@@ -140,6 +149,7 @@ impl StrategyRouter {
         env: Env,
         admin: Address,
         pool: Address,
+        flash_receiver: Address,
         max_leverage_bps: u32,
         min_open_hf_bps: u32,
         flash_fee_bps: u32,
@@ -151,40 +161,18 @@ impl StrategyRouter {
         env.storage().instance().set(&KEY_ADMIN, &admin);
         env.storage().instance().set(&KEY_PAUSED, &false);
         env.storage().instance().set(&KEY_POOL, &pool);
+        env.storage().instance().set(&KEY_RECEIVER, &flash_receiver);
         env.storage().instance().set(&KEY_MAX_LEV, &max_leverage_bps);
         env.storage().instance().set(&KEY_MIN_HF, &min_open_hf_bps);
         env.storage().instance().set(&KEY_FLASH_BPS, &flash_fee_bps);
         Ok(())
     }
 
-    /// Blend flash_loan callback'i — AUDIT 2026-06-02 §6.8 (KRİTİK).
-    ///
-    /// Blend v2 `pool.flash_loan`, flash fonunu bu kontrata transfer ettikten
-    /// SONRA `FlashLoanClient(flash.contract).exec_op(&from, &asset, &amount, &0)`
-    /// çağırır (kaynak: blend-contracts-v2 pool/src/pool/submit.rs). Bu fn olmadan
-    /// flash_loan dispatch hatasıyla revert eder.
-    ///
-    /// İmza, Blend'in `FlashLoan` trait'i + referans receiver `mocks/moderc3156`
-    /// ile BİREBİR: `exec_op(caller: Address, token: Address, amount: i128, fee: i128)`.
-    ///
-    /// Davranış (moderc3156 deseni): aldığı flash fonunu `caller`'a (open_position'daki
-    /// user) geri transfer eder → böylece sonraki `SupplyCollateral(principal+flash)`
-    /// request'i user'ın bakiyesinden (principal + yeni gelen flash) fonlanır.
-    ///
-    /// GÜVENLİK: `caller.require_auth()` — standalone kötüye kullanımı engeller
-    /// (router yalnız flash_loan sırasında transient bakiye tutar; flash dışı çağrıda
-    /// caller imzası yoksa revert, bakiye de ~0). Blend `from`'u zaten tx auth ağında
-    /// imzaladığından flash_loan içinden çağrı geçer.
-    pub fn exec_op(env: Env, caller: Address, token: Address, amount: i128, _fee: i128) {
-        caller.require_auth();
-        token::TokenClient::new(&env, &token).transfer(
-            &env.current_contract_address(),
-            &caller,
-            &amount,
-        );
-        // _fee: Blend pool fee'si requests/Borrow tarafında karşılanır (AUDIT §2.6 —
-        // Helios kendi fee'si yok). Burada ek transfer gerekmez.
-    }
+    // NOT (AUDIT 2026-06-03 re-entry fix): `exec_op` ARTIK BURADA DEĞİL.
+    // Ayrı `flash_receiver` kontratına taşındı. Router exec_op'u taşırsa
+    // router→pool→router re-entry'si oluşur ve Soroban bunu yasaklar
+    // ("Contract re-entry is not allowed", canlı doğrulandı). open_position
+    // FlashLoan.contract = flash_receiver geçirir → zincir router→pool→receiver.
 
     /// Atomik tek-tx kaldıraç açılışı.
     ///
@@ -240,9 +228,12 @@ impl StrategyRouter {
         // -- Blend'e atomik çağrı (flash_loan + requests) -------------------
         let pool = pool_address(&env)?;
         let pool_client = PoolClient::new(&env, &pool);
+        // AUDIT 2026-06-03 (re-entry fix): FlashLoan.contract = AYRI flash_receiver
+        // (router DEĞİL) → zincir router→pool→receiver, re-entry yok.
+        let receiver = receiver_address(&env)?;
 
         let flash = FlashLoan {
-            contract: env.current_contract_address(),
+            contract: receiver,
             asset: asset.clone(),
             amount: flash_amount,
         };

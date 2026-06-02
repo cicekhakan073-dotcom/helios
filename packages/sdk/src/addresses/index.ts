@@ -57,7 +57,7 @@ function fromEnv(key: string, fallback: string): string {
 const FALLBACK: HeliosAddresses = {
   network: { id: "testnet", passphrase: TESTNET_PASSPHRASE },
   helios: {
-    strategyRouter: "CAYZAXMHCOIW2W3NKPYN5BVPPJSNLFHK3X5HRGE74PVSRAC6DRCEXKFY",
+    strategyRouter: "CBOQUIOAXTKAG7WFEPJRZMRKPOBJRNQCAKBXMK5PRIMMPB5QT3TMGDUR",
     keeper: "CDWMZI7CCSUZ6SNTACYGUHDVDGY4J4BZDKVZ4HTRRSGKBBIMXBE4DUMU",
   },
   blend: {

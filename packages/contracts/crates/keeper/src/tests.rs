@@ -62,10 +62,12 @@ fn setup() -> Fixture {
     };
     install_reserve(&env, &pool, &usdc, usdc_reserve);
 
-    // StrategyRouter
+    // StrategyRouter (flash_receiver: keeper testi close→submit kullandığı için
+    // open/flash yolunu mock'la; generated adres yeterli — AUDIT 2026-06-03)
+    let flash_receiver = Address::generate(&env);
     let router = env.register(StrategyRouter, ());
     let router_client = StrategyRouterClient::new(&env, &router);
-    router_client.init(&admin, &pool, &500u32, &130u32, &0u32);
+    router_client.init(&admin, &pool, &flash_receiver, &500u32, &130u32, &0u32);
 
     // Keeper
     let keeper = env.register(Keeper, ());

@@ -1,0 +1,20 @@
+[package]
+name = "flash_receiver"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Helios — Blend flash_loan callback alıcısı (exec_op). Router'dan AYRI: re-entry önler."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+
+[features]
+default = []
+testutils = ["soroban-sdk/testutils"]

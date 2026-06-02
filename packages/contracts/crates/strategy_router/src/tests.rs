@@ -68,10 +68,13 @@ fn setup(max_lev_bps: u32, min_open_hf_bps: u32, flash_fee_bps: u32) -> Fixture 
     };
     install_reserve(&env, &pool, &usdc, usdc_reserve);
 
-    // Router kur + init
+    // Router kur + init. flash_receiver: mock FlashLoan.contract'ı yok saydığı için
+    // testte generated adres yeterli; gerçek receiver exec_op'u flash_receiver crate
+    // testinde doğrulanır (AUDIT 2026-06-03 re-entry fix).
+    let flash_receiver = Address::generate(&env);
     let router = env.register(StrategyRouter, ());
     let client = StrategyRouterClient::new(&env, &router);
-    client.init(&admin, &pool, &max_lev_bps, &min_open_hf_bps, &flash_fee_bps);
+    client.init(&admin, &pool, &flash_receiver, &max_lev_bps, &min_open_hf_bps, &flash_fee_bps);
 
     // Provision: hem user (principal için) hem pool (flash + borrow için) yeterli
     // bakiye. flash_loan mock'u gerçek SAC transferi yapar → bakiye yetmezse revert.
@@ -110,40 +113,8 @@ fn open_position_3x_basariyla_pozisyon_aciyor() {
     assert_eq!(simple_hf_estimate(&positions), 150);
 }
 
-/// PROMPT 12-FIX-V: exec_op kapsama — standalone test.
-///
-/// MockBlendPool re-entry yasağı yüzünden flash_loan içinde exec_op'u çağıramaz
-/// (testutils.rs notu). Bu test exec_op imza + transfer yolunu doğrudan
-/// doğrular: SAC token, router'a fonlanır → caller (user) ile çağrı →
-/// router user'a aktarmalı.
-#[test]
-fn exec_op_caller_imzasiyla_user_a_transfer_eder() {
-    let f = setup(500, 130, 0);
-    let tok = token::TokenClient::new(&f.env, &f.usdc);
-    let router_client = StrategyRouterClient::new(&f.env, &f.router);
-
-    // Router'a transient bakiye (gerçek pool'un flash transfer'ı yerine).
-    let flash_amount: i128 = 25_000;
-    let _ = (&f.usdc_sac, &f.admin); // fixture handle'ları unused-suppress
-    let usdc_admin = token::StellarAssetClient::new(&f.env, &f.usdc);
-    usdc_admin.mint(&f.router, &flash_amount);
-
-    let router_pre = tok.balance(&f.router);
-    let user_pre = tok.balance(&f.user);
-    assert_eq!(router_pre, flash_amount, "router fonlanmalı (pool transfer eşdeğeri)");
-
-    // exec_op çağrısı: caller=user, token=usdc, amount=flash_amount, fee=0
-    router_client.exec_op(&f.user, &f.usdc, &flash_amount, &0i128);
-
-    let router_post = tok.balance(&f.router);
-    let user_post = tok.balance(&f.user);
-    assert_eq!(router_post, 0, "router transient bakiye sıfırlanmalı");
-    assert_eq!(
-        user_post,
-        user_pre + flash_amount,
-        "user'a flash_amount kadar transfer geldi",
-    );
-}
+// NOT (AUDIT 2026-06-03 re-entry fix): exec_op router'dan ayrı `flash_receiver`
+// kontratına taşındı. exec_op kapsama testi artık `flash_receiver` crate'inde.
 
 // ============================================================================
 // Guard'lar
@@ -280,7 +251,7 @@ fn double_init_already_initialized() {
     let client = StrategyRouterClient::new(&f.env, &f.router);
 
     // Tekrar init dene
-    let result = client.try_init(&f.admin, &f.pool, &500u32, &130u32, &0u32);
+    let result = client.try_init(&f.admin, &f.pool, &f.pool, &500u32, &130u32, &0u32);
     assert_eq!(
         result.err().unwrap().unwrap(),
         HeliosError::AlreadyInitialized.into()

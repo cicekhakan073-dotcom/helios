@@ -6,6 +6,7 @@ members = [
     "crates/blend",
     "crates/strategy_router",
     "crates/keeper",
+    "crates/flash_receiver",
 ]
 
 # ---------------------------------------------------------------------------
