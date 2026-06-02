@@ -39,6 +39,17 @@ export * from "./helios/hooks";
 export * from "./helios/keeper";
 export * from "./helios/router";
 export * from "./helios/open-position";
+export * from "./helios/close-position";
+export * from "./helios/opt-in";
+export {
+  simulatePreparedTx,
+  signAndSendPreparedTx,
+  txExplorerLink,
+  TxSimulateError,
+  TxSendError,
+  type SimulatePreview as TxSimulatePreview,
+  type SignAndSendResult as TxSignAndSendResult,
+} from "./helios/tx-pipeline";
 
 // Errors normalize + toast hub (PROMPT 19)
 export * from "./errors";
