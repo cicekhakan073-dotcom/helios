@@ -53,31 +53,40 @@ impl MockBlendPool {
         apply_requests(&env, &from, &requests)
     }
 
-    /// Mock flash_loan — gerçek Blend pool akışından **kasıtlı sapma**:
+    /// Mock flash_loan — AUDIT 2026-06-03 TEŞHİS sonrası SADIK pozisyon modeli.
     ///
-    /// Gerçek pool `FlashLoanClient(flash.contract).exec_op(...)` çağırır, ama bu
-    /// soroban-env-host 26.1.3'te **immediate contract re-entry** sayılır
-    /// (router → pool → router) ve `ContractReentryMode::Prohibited` default'u
-    /// yüzünden test ortamında `"Contract re-entry is not allowed"` hatası ile
-    /// revert eder. soroban-sdk 26.0.1 reentry mode'u dışarı açmadığı için mock
-    /// burada exec_op'u **çağırmaz** — yalnız request'leri uygular ve flash
-    /// transfer + repayment kontrolünü atlar.
+    /// Gerçek Blend `execute_submit_with_flash_loan` ADIM 1'de `flash_loan.amount`'u
+    /// user'ın borcu (d_token) olarak yazar, SONRA requests'i uygular. Mock bunu
+    /// yansıtır → Helios `open_position` requests'ine FAZLADAN `Borrow` eklerse
+    /// (çift-borç bug'ı, #1205'in kök sebebi) test bunu yakalar.
     ///
-    /// **exec_op kapsama testi**: `strategy_router::tests` içinde standalone
-    /// `exec_op_caller_imzasiyla_user_a_transfer_eder` testi receiver imzasını,
-    /// auth gereksinimini ve token transferini doğrudan doğrular.
-    ///
-    /// **Production akışı bu ayrımı kaldırır** — gerçek Blend pool tx-level
-    /// auth + reentry policy'sini canlı testte handle eder (PROMPT 12-FIX
-    /// redeploy'unun ardından canlı tx flash callback'i ÇALIŞIYOR; sapma yalnız
-    /// off-chain test'lerde, on-chain'de değil).
+    /// **Sapma (yalnız off-chain test):** `exec_op` callback'i ÇAĞRILMAZ —
+    /// soroban-env-host 26.1.3 router→pool→router immediate re-entry'sini yasaklar
+    /// (`ContractReentryMode::Prohibited`) ve sdk 26.0.1 mode'u dışa açmaz.
+    /// Token transferi + repayment de modellenmez (pozisyon defteri yeterli).
+    /// exec_op kapsaması `strategy_router::tests` standalone testinde; flash→borç
+    /// + supply muhasebesi burada.
     pub fn flash_loan(
         env: Env,
         from: Address,
-        _flash_loan: FlashLoan,
+        flash_loan: FlashLoan,
         requests: Vec<Request>,
     ) -> Positions {
-        apply_requests(&env, &from, &requests)
+        let mut p = positions_of(&env, &from);
+        // ADIM 1: flash_amount = user borcu.
+        apply_one(
+            &env,
+            &mut p,
+            &flash_loan.asset,
+            flash_loan.amount,
+            RequestType::Borrow as u32,
+        );
+        // ADIM 2: requests.
+        for r in requests.iter() {
+            apply_one(&env, &mut p, &r.address, r.amount, r.request_type);
+        }
+        save_positions(&env, &from, &p);
+        p
     }
 
     pub fn get_positions(env: Env, address: Address) -> Positions {

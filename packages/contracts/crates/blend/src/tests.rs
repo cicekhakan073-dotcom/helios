@@ -186,12 +186,14 @@ fn flash_loan_requests_uygulaniyor() {
         asset: f.usdc.clone(),
         amount: 5_000,
     };
+    // DOĞRU desen (AUDIT 2026-06-03): flash_amount Blend tarafında ZATEN borç olur;
+    // requests'e AYRI Borrow EKLENMEZ. Yalnız supply.
     let mut requests: Vec<Request> = Vec::new(&f.env);
     requests.push_back(supply_collateral_req(f.usdc.clone(), 8_000));
-    requests.push_back(borrow_req(f.usdc.clone(), 5_000));
 
     let positions = client.flash_loan(&f.user, &flash, &requests);
     assert_eq!(positions.collateral.get(0).unwrap(), 8_000);
+    // debt = yalnız flash_amount (5_000) — sadık mock flash'ı borç yazıyor.
     assert_eq!(positions.liabilities.get(0).unwrap(), 5_000);
 }
 

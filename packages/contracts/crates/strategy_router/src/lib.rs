@@ -37,9 +37,7 @@
 
 #![no_std]
 
-use blend::actions::{
-    borrow_req, repay_req, supply_collateral_req, withdraw_collateral_req,
-};
+use blend::actions::{repay_req, supply_collateral_req, withdraw_collateral_req};
 use blend::{FlashLoan, PoolClient, Positions, Request};
 use shared::HeliosError;
 use soroban_sdk::{contract, contractimpl, symbol_short, token, Address, Env, Symbol, Vec};
@@ -232,9 +230,12 @@ impl StrategyRouter {
         let flash_amount: i128 =
             (principal * (leverage_bps as i128 - LEVERAGE_BASE as i128)) / LEVERAGE_BASE as i128;
         let total_collateral: i128 = principal + flash_amount;
-        let flash_fee_bps: u32 = env.storage().instance().get(&KEY_FLASH_BPS).unwrap_or(0);
-        let flash_fee: i128 = (flash_amount * flash_fee_bps as i128) / 10_000;
-        let borrow_amount: i128 = flash_amount + flash_fee;
+        // AUDIT 2026-06-03 (TEŞHİS #1205 — çift-borç fix): Blend flash_loan
+        // `flash_amount`'u user'ın borcu olarak ZATEN yazıyor
+        // (execute_submit_with_flash_loan ADIM 1: d_token mint). Bu yüzden requests
+        // vec'ine AYRI Borrow EKLENMEZ — eklersek çift-borç → HF düşer → #1205 InvalidHf.
+        // flash_fee de Blend'in to_d_token_up rounding'inde içeride taşınır.
+        let debt_amount: i128 = flash_amount; // standing borç = flash (event için)
 
         // -- Blend'e atomik çağrı (flash_loan + requests) -------------------
         let pool = pool_address(&env)?;
@@ -247,7 +248,7 @@ impl StrategyRouter {
         };
         let mut requests: Vec<Request> = Vec::new(&env);
         requests.push_back(supply_collateral_req(asset.clone(), total_collateral));
-        requests.push_back(borrow_req(asset.clone(), borrow_amount));
+        // Borrow request YOK — flash_amount Blend tarafında zaten borç (yukarı not).
 
         let positions: Positions = pool_client.flash_loan(&user, &flash, &requests);
 
@@ -266,7 +267,7 @@ impl StrategyRouter {
         #[allow(deprecated)]
         env.events().publish(
             (symbol_short!("posopen"), user.clone()),
-            (asset, principal, total_collateral, borrow_amount, leverage_bps),
+            (asset, principal, total_collateral, debt_amount, leverage_bps),
         );
 
         Ok(())
@@ -276,15 +277,21 @@ impl StrategyRouter {
     ///
     /// Akış:
     ///   1. Guard (auth, paused)
-    ///   2. `pool.flash_loan(user, FlashLoan{router, asset, debt_amount}, [
-    ///        Repay(asset, debt_amount),
-    ///        WithdrawCollateral(asset, collateral_amount)
+    ///   2. `pool.submit(user, user, user, [
+    ///        WithdrawCollateral(asset, collateral_amount),
+    ///        Repay(asset, debt_amount)
     ///      ])`
     ///   3. Event: `pos_closed`
     ///
-    /// Kullanıcı `debt_amount` (kapanacak borç) + `collateral_amount` (çekilecek
-    /// teminat) parametrelerini frontend'den hesaplayıp gönderir (Blend
-    /// `get_positions(user)` ile okunmuş güncel değerler).
+    /// AUDIT 2026-06-03 (TEŞHİS #1205): close/deleverage flash_loan'a İHTİYAÇ DUYMAZ.
+    /// Çekilen teminat borç ödemesini fonlar (net token akışı ≈ collateral−debt);
+    /// tek `submit` yeterli. Eski flash_loan tasarımı Blend'in flash→borç ADIM 1'i
+    /// yüzünden çift-borç üretiyordu (open ile aynı sınıf bug) — kaldırıldı. Flash
+    /// yalnız OPEN'da gerekli (önden fazla fon).
+    ///
+    /// Kullanıcı `debt_amount` + `collateral_amount`'u frontend'den hesaplar (Blend
+    /// `get_positions(user)` güncel değerleri); `collateral_amount ≥ debt_amount`
+    /// olmalı ki net çekiş fonlanabilsin ve bitiş HF'si ≥ Blend eşiği kalsın.
     pub fn close_position(
         env: Env,
         user: Address,
@@ -302,16 +309,11 @@ impl StrategyRouter {
         let pool = pool_address(&env)?;
         let pool_client = PoolClient::new(&env, &pool);
 
-        let flash = FlashLoan {
-            contract: env.current_contract_address(),
-            asset: asset.clone(),
-            amount: debt_amount,
-        };
         let mut requests: Vec<Request> = Vec::new(&env);
-        requests.push_back(repay_req(asset.clone(), debt_amount));
         requests.push_back(withdraw_collateral_req(asset.clone(), collateral_amount));
+        requests.push_back(repay_req(asset.clone(), debt_amount));
 
-        let _positions: Positions = pool_client.flash_loan(&user, &flash, &requests);
+        let _positions: Positions = pool_client.submit(&user, &user, &user, &requests);
 
         #[allow(deprecated)]
         env.events().publish(

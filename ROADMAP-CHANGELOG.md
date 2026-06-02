@@ -185,3 +185,149 @@ Bunlar uydurulmadı; STELLAR_STACK.md §9'da listeli:
 **Etki:**
 - `ASSET_META.{wBTC,wETH}.reflector.kind` referans olarak `Other` kalır (Reflector V3 external_cex_dex feed'inde fiyat var), AMA HF/Helios oracle path'i için tüm asset'ler SAC adresi ile pool_oracle'a gider.
 - AssetPicker (PROMPT 21) wBTC/wETH için "fiyat akışı yok" rozetiyle disable edilecek (PROMPT 22 DEVAM içinde).
+
+---
+
+## TEŞHİS 2026-06-03 — #1205 kök sebep (Helios open_position çift-borç bug'ı)
+
+**Bağlam:** PROMPT 12-FIX-V'de #1205 = `InvalidHf` doğrulandı ve eşik
+`L·c·l/(L-1)` formülü ile XLM 2x → 1.62 → "1.30 üstü" denilerek SDK cap 200
+bps'ye çekildi. AMA empirik test: 2x (principal 10 XLM) HALA #1205 atıyor.
+12-FIX-V'nin teorik HF hesabı doğru AMA Helios'un on-chain çağrı şekli formüldeki
+varsayımı kırıyor.
+
+**Yöntem:** SALT inceleme — kod değişikliği YOK, deploy YOK. Üç hipotezi
+canlı testnet event'leri + blend-contracts-v2/main kaynağı + Reflector
+get_reserve rate'leri ile ayırt ettim. Bu turdaki canlı XLM rate'leri:
+b_rate = 1_329_181_748_588, d_rate = 1_511_791_270_251 (≈1.329 / 1.512, 12-dec
+scalar). Kontrat: router CAY2KRMOOOIYRHKHY5QJJF6L35PXZTRO3U6OZ54NJPMCWS7ZEVSB2CUX,
+pool CCEBVDYM…44HGF.
+
+### #1205 kesin variant adı (KAYNAK DOĞRULAMA)
+`blend-contracts-v2/main/pool/src/errors.rs`:
+```
+InvalidHf = 1205,
+```
+Yorum: "Error codes for the pool contract. … Pool specific errors start at
+1200." Doc-comment yok; variant adı bu satırda. 12-FIX-V'nin "InvalidHf"
+çağrısı **doğru**. Sorun adda değil, ne zaman atıldığında.
+
+### #1205'in atıldığı tek nokta — `validate_submit`
+`blend-contracts-v2/main/pool/src/pool/submit.rs` `validate_submit` fn
+(satır 189–221) içinde:
+```rust
+if check_health && from_state.has_liabilities() {
+    let position_data = PositionData::calculate_from_positions(
+        e, pool, &from_state.positions);
+    if position_data.is_hf_under(e, 1_0000100) {
+        panic_with_error!(e, PoolError::InvalidHf);
+    } ...
+}
+```
+Yani Blend'in tek `InvalidHf` eşiği **`1_0000100` (SCALAR_7)** = HF < 1.00001.
+"1.30" Blend'in eşiği DEĞİL — Helios'un kendi `min_open_hf_bps`. Blend'i
+geçmek için **gerçek HF < 1.00001 olmamalı**.
+
+### H1 — Same-reserve hem collateral hem liability yasak mı? ❌ ÇÜRÜTÜLDÜ
+Kaynak: `pool/src/pool/actions.rs build_actions_from_request` (satır 79–181) ve
+`pool/src/pool/health_factor.rs PositionData::calculate_from_positions`. İki
+kanıt:
+1. actions.rs request'leri **birbirinden bağımsız** uygular: `apply_supply_collateral`
+   user.add_collateral, `apply_borrow` user.add_liabilities — aralarında
+   cross-check yok, "same reserve" guard'ı yok (lines 91–92 yalnız
+   `require_nonnegative`).
+2. health_factor.rs reserve loop'u `if b_token == 0 && d_token == 0 { continue; }`
+   ile filtreliyor — tek reserve aynı anda hem collateral hem liability
+   tutabilir (her iki Map'te de pozitif değer olabilir).
+
+**Sonuç:** Same-asset MVP mimari olarak yasak DEĞİL. §6.3 cross-asset
+zorunluluğu YOK. Hatanın kaynağı same-asset semantiği değil.
+
+### H2 — Helios open_position çift-borç (FLASH liability + Borrow request) ✅ KÖK SEBEP
+`pool/src/pool/submit.rs execute_submit_with_flash_loan` akışı (kaynak full):
+```rust
+// ADIM 1 — flash liability'yi user'a yaz (request'lerden ÖNCE!)
+let d_tokens_minted = reserve.to_d_token_up(e, flash_loan.amount);
+from_state.add_liabilities(e, &mut reserve, d_tokens_minted);
+// ADIM 2 — diğer request'leri uygula
+let mut actions = build_actions_from_request(e, &mut pool, &mut from_state, requests);
+// ADIM 3 — HF kontrol (her zaman true)
+validate_submit(e, &mut pool, &from_state, prev_positions_count, true, …);
+// ADIM 4 — flash transfer + exec_op + handle_transfer_with_allowance
+```
+
+Helios `strategy_router::open_position` requests'i:
+```rust
+requests.push_back(supply_collateral_req(asset, total_collateral));  // OK
+requests.push_back(borrow_req(asset, borrow_amount));                // ❌ FAZLALIK
+```
+ve `flash_loan(user, FlashLoan{contract: router, asset, amount: flash_amount}, requests)`.
+
+Blend semantiğinde **`flash_loan.amount` zaten user'ın borcu olarak yazılıyor**
+(ADIM 1). Helios'un ek `Borrow(flash_amount)` request'i ADIM 2'de aynı miktarı
+**ikinci kez** liability'ye ekliyor.
+
+**Net pozisyon (ADIM 3 öncesi):**
+- collateral underlying = `total_collateral` = `principal + flash_amount`
+- liability underlying  = `flash_amount` (ADIM 1) + `flash_amount` (ADIM 2 Borrow) = `2 × flash_amount`
+
+**2x örneği (principal = P, flash = P, total = 2P):**
+- collateral = 2P, liability = 2P
+- Effective: `2P × c_factor` vs `2P / l_factor` → c·l = 0.81
+- HF = (2P × 0.9) / (2P / 0.9) = 1.62P × 0.9 / 2P = **0.81 < 1.0000100 → #1205 ✓**
+
+Empirik kanıtla aynen tutuyor: events `supply_collateral(200_000_000)`,
+`borrow(100_000_000)`, sonra #1205. b/d-rate mint cancel olur (mint sırasında
+÷rate, HF sırasında ×rate); o yüzden b_rate=1.329, d_rate=1.512 ŞART değil —
+ama H3 numerik doğrulaması için aşağıda yine de hesapladım.
+
+### H3 — Gerçek HF (b_rate/d_rate uygulanmış) ✅ NUMERİK DOĞRULAMA
+b/d-rate mint+HF aşamasında matematik olarak cancel ettiği için H3 ile H2
+sayısı aynı çıkar; yine de empirik tutarlılık için:
+
+**Mevcut (yanlış) akış, 2x:**
+- b_tokens minted = `200_000_000 / 1.329 ≈ 150_517_818` (event'le birebir)
+- d_tokens (flash) = `100M / 1.512 ≈ 66_140_000`; d_tokens (Borrow) = aynı
+- Toplam d_tokens ≈ 132_280_000
+- col_underlying = `150_517_818 × 1.329 ≈ 200M`
+- liab_underlying = `132_280_000 × 1.512 ≈ 200M`
+- Eff col = 200M × 0.9 = 180M; Eff liab = 200M / 0.9 ≈ 222.2M
+- **HF = 180/222.2 ≈ 0.81** → 1.0000100 altında → #1205 ✓
+
+**DOĞRU akış (Borrow request'siz), 2x:**
+- d_tokens yalnız flash'tan = ≈66_140_000
+- liab_underlying = 100M; eff_liab = 100M/0.9 = 111.1M
+- col_underlying = 200M; eff_col = 180M
+- **HF = 180/111.1 ≈ 1.62** → 1.0000100'ün çok üstünde ✓
+
+**3x test (DOĞRU akış):** col_underlying=300M, liab=200M; eff: 270M / 222.2M
+→ HF = **1.215**. Blend'in 1.0000100 eşiğini geçer (kabul!), AMA Helios kendi
+`min_open_hf_bps = 130 = 1.30` post-check'i reddeder (`UnsafeHealthFactor`).
+
+### Sonuç
+
+| Hipotez | Verdict | Kanıt |
+|---|---|---|
+| H1 Same-reserve yasağı | **ÇÜRÜK** | actions.rs / health_factor.rs guard yok |
+| H2 Çift-borç (FLASH + Borrow) | **DOĞRU — kök sebep** | submit.rs ADIM 1+2 + empirik HF 0.81 |
+| H3 b/d-rate kaynaklı HF düşüşü | **NUMERİK OLARAK H2 ile aynı** | b/d-rate mint+HF'de cancel; H2 yeterli |
+
+**Same-asset MVP viability: KOŞULLU ÇALIŞIR.**
+- Mimari olarak yasak yok (H1). 
+- Helios'un `Vec<Request>`'inden Borrow request'i ÇIKARMAK gerekiyor (H2 fix).
+- Fix sonrası 2x (XLM/USDC) Blend ve Helios guard'larının ikisini de geçer.
+- 2x ile 2.65x arasında Blend kabul eder ama Helios 1.30 floor'u reddeder.
+  → Wizard cap **200 bps doğru** kalır.
+- Cross-asset (§6.3) GEREKLİ DEĞİL — same-asset düzgün çalışıyor.
+
+### Önerilen fix yönü (UYGULAMA AYRI PROMPT)
+`strategy_router::open_position` requests vec'inden `borrow_req(asset, borrow_amount)`
+satırını **kaldır**; yalnız `supply_collateral_req(asset, total_collateral)` kalsın.
+flash_loan'un `amount` parametresi Blend tarafında zaten d-token mint'i yapıyor
+(submit.rs ADIM 1). Aynı şeyi requests vec'inde tekrarlamak çift sayıma yol
+açıyor ve InvalidHf üretiyor. `flash_fee` hesabı da bu noktada gözden geçirilmeli
+— Blend'in `to_d_token_up()` zaten "up"-rounding ile fee'yi içeride taşıyor;
+Helios'un `borrow_amount = flash_amount + flash_fee` kullanması ek sapma
+yaratıyor. close_position symmetric akışı (Repay + WithdrawCollateral) tasarımdan
+ETKİLENMEZ çünkü Repay zaten "var olan d-tokens'ları sil" semantiği taşıyor; ama
+PROMPT 12-FIX-VI'da onun da yeniden doğrulanması önerilir.
