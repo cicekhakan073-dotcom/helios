@@ -1668,3 +1668,36 @@ Dashboard (PROMPT 23) bu birleşik objeyi tüketir; Neon satırı eksikse pozisy
 Repo **git deposu değil**. Sonuç: geri alma yok, Husky pre-commit tetiklenmiyor, Vercel deploy (PROMPT 34) git ister. **Aksiyon kullanıcıda**: `git init && git add . && git commit`. Faz 4 ilerledikçe biriken risk; PROMPT 34'ten önce zorunlu.
 
 > Bu bölümdeki kararlar PROMPT 22+ başlarken §6.1 ve §6.2 öncelikli okunur.
+
+---
+
+### 6.8 ⚠️ KRİTİK DÜZELTME — Blend flash_loan `exec_op` callback ZORUNLU (AUDIT §1.1 yanlıştı)
+
+> **AUDIT §1.1'deki "exec_op/callback chain YOK" iddiası YANLIŞTIR.** Canlı kaynak doğrulaması (2026-06-02, `blend-contracts-v2/main`): Blend v2 `pool.flash_loan`, alıcı kontratta **`exec_op` callback'ini ZORUNLU çağırır.** Helios `strategy_router`'da `exec_op` olmadığı için `open_position`/`close_position` **gerçek pool'da revert eder.** Mock testler (MockBlendPool callback'i implemente etmedi) bunu maskeledi → 82 yeşil test yanlış güven verdi.
+
+**Kanıt (`pool/src/pool/submit.rs::execute_submit_with_flash_loan`):**
+1. `TokenClient(flash.asset).transfer(pool, flash.contract, flash.amount)` — flash fonu **router'a** gider.
+2. `FlashLoanClient::new(e, flash.contract).exec_op(&from, &flash.asset, &flash.amount, &0)` — **router'ın `exec_op`'u çağrılır.**
+3. `requests` (Supply/Borrow/Repay/Withdraw) `from` için işlenir.
+4. Sonda HF ≥ `1_0000100` (`validate_submit` / `PositionData::is_hf_under`).
+
+**Referans receiver (`mocks/moderc3156/src/lib.rs`):**
+```rust
+pub fn exec_op(env: Env, caller: Address, token: Address, amount: i128, _fee: i128) {
+    caller.require_auth();
+    // ... (opsiyonel re-entrant)
+    TokenClient::new(&env, &token).transfer(&env.current_contract_address(), &caller, &amount);
+}
+```
+→ `exec_op` aldığı flash fonunu **`caller`'a (user) geri transfer eder**. Böylece `requests` içindeki `SupplyCollateral(principal + flash)` user'ın bakiyesinden (principal + yeni gelen flash) fonlanır.
+
+**Allowance gereksinimi (`test-suites/tests/test_flashloan.rs`):** flash_loan ÖNCESİ user pool'a `token.approve(user, pool, amount, ttl)` vermeli — pool teminatı allowance ile çeker. Tek-op `open_position` tx'i bunu içermez.
+
+**PROMPT 12-FIX (router) — bağlayıcı:**
+1. `strategy_router`'a `exec_op(env, caller: Address, token: Address, amount: i128, fee: i128)` ekle → `TokenClient(token).transfer(current_contract, caller, amount)` (moderc3156 deseni). `caller == open_position'daki user` invariant'ını koru.
+2. `simple_hf_estimate` post-check'i Blend'in kendi HF kontrolüyle (min 1.0000100) çakışmasın — Blend zaten reddediyorsa router guard'ı gevşet/uyumla.
+3. Mock'u (MockBlendPool) `exec_op`'u **gerçekten çağıracak** şekilde düzelt (yoksa test yine yalan söyler) — VEYA gerçek pool'a karşı `test_flashloan.rs` benzeri fixture.
+4. **# DOĞRULA — allowance/auth:** `open_position` tx'inin user→pool token allowance'ını nasıl sağladığını belirle: ya (a) tx'e `approve` operasyonu/auth entry eklenir, ya (b) Wallets Kit imzası simulate sırasında gerekli auth entry'leri üretir. Canlı simulate ile teyit et.
+5. Redeploy (PROMPT 15) → `addresses.json.helios.strategy_router` yeni ID; SDK/UI (PROMPT 22) değişmez.
+
+**Sıralama kararı:** Bu fix gerçek pool'da **canlı simulate ile yeşil olmadan** PROMPT 23+ (Dashboard vd.) İLERLEMEZ. Çekirdek mekanik doğrulanmadan üstüne feature kurmak = birikmiş hata riski.
