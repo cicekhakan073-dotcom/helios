@@ -30,12 +30,15 @@ export * from "./hf";
 export * from "./oracle/client";
 export * from "./oracle/hook";
 export * from "./oracle/scval";
+export * from "./oracle/pool-oracle";
+export * from "./oracle/pool-oracle-hook";
 export * from "./blend-pool/client";
 export * from "./blend-pool/hook";
 export * from "./helios/config";
 export * from "./helios/hooks";
 export * from "./helios/keeper";
 export * from "./helios/router";
+export * from "./helios/open-position";
 
 // Errors normalize + toast hub (PROMPT 19)
 export * from "./errors";

@@ -161,3 +161,27 @@ Bunlar uydurulmadı; STELLAR_STACK.md §9'da listeli:
 - Reflector SEP-40 exact fn imzaları — standart + adresler doğrulandı, imzalar değil.
 - OZ stellar-contract-utils vault util public API'si — crate doğrulandı, imzalar değil.
 - Testnet contract adresleri — 2026-05-31'de doğru; testnet reset'te rotasyon olabilir, deploy anında yeniden çek.
+
+---
+
+## DOĞRULAMA 2026-06-02 — Pool oracle (CAZOKR2Y) SEP-40 API canlı kontrol
+**Bağlam:** PROMPT 22 DEVAM, AUDIT 2026-06-02 §6.1 Path B — Blend pool'un kendi oracle'ı `CAZOKR2Y5E2OSWSIBRVZMJ47RUTQPIGVWSAQ2UISGAVC46XKPGDG5PKI`. Helios HF tutarlılığı için fiyatlar BU oracle'dan okunmalı; ASSET_META wBTC/wETH için `Other("BTC"/"ETH")` varsayıyordu — canlı doğrulama gerekti.
+
+**Yöntem:** `stellar contract invoke ... -- lastprice --asset "{\"Stellar\":\"…\"}"` (testnet, 2026-06-02).
+
+**Bulgular:**
+- `decimals() = 7`, `base() = {"Other":"USD"}` → 7 ondalıklı USD.
+- `assets()` = pool'da kayıtlı 4 reserve SAC adresi tümü **`{"Stellar":"C…"}`** variantı (USDC, XLM, wETH, wBTC).
+- `lastprice(Stellar(XLM_SAC))` = `{"price":"4200000","timestamp":1780414895}` → $0.42.
+- `lastprice(Stellar(USDC_SAC))` = `{"price":"10000000","timestamp":1780414895}` → $1.00.
+- `lastprice(Stellar(wBTC_SAC))` = `null` — fiyat akmıyor.
+- `lastprice(Stellar(wETH_SAC))` = `null` — fiyat akmıyor.
+
+**Sonuç:**
+1. Pool oracle SEP-40 Asset enum'unun **Stellar(Address)** variantını bekler; 4 reserve için doğru sorgu = SAC adresi (Other(Symbol) DEĞİL).
+2. wBTC/wETH oracle'da publish edilmiyor — UI bunu graceful "fiyat akışı yok" göstermek zorunda; HF/live preview hesaplanamaz.
+3. MVP demo akışı için **USDC/XLM** desteklenir; wBTC/wETH UI'da disabled + "no price feed (testnet)" rozeti ile gösterilecek.
+
+**Etki:**
+- `ASSET_META.{wBTC,wETH}.reflector.kind` referans olarak `Other` kalır (Reflector V3 external_cex_dex feed'inde fiyat var), AMA HF/Helios oracle path'i için tüm asset'ler SAC adresi ile pool_oracle'a gider.
+- AssetPicker (PROMPT 21) wBTC/wETH için "fiyat akışı yok" rozetiyle disable edilecek (PROMPT 22 DEVAM içinde).

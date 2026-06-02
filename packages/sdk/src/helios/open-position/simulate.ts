@@ -6,7 +6,7 @@
  * önizleme `SimulatePreview` objesi geri verilir; gerçek imza ayrı adım.
  */
 
-import { rpc, Transaction } from "@stellar/stellar-sdk";
+import { rpc, type Transaction } from "@stellar/stellar-sdk";
 
 import { getRpcServer } from "../../rpc/server";
 

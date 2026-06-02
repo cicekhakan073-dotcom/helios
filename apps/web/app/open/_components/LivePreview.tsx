@@ -10,7 +10,7 @@ import {
   HfError,
   liquidationPrice as calcLiquidationPrice,
   riskBand,
-  useOraclePrice,
+  usePoolOraclePrice,
 } from "@helios/sdk";
 import { HealthFactorBadge, RiskGauge, StatTile } from "@helios/ui";
 import { useMemo } from "react";
@@ -44,7 +44,9 @@ export function useLivePreview(): LivePreviewResult {
   const leverageBps = useWizard((s) => s.leverageBps);
   const meta = ASSET_META[assetId];
 
-  const oracleQ = useOraclePrice(assetId, { enabled: meta.reflector.kind === "Other" });
+  // AUDIT 2026-06-02 §6.1 — HF tutarlılığı için Blend pool'un kendi oracle'ı
+  // (CAZOKR2Y) kullanılır. Reflector V3 instance'ları referans olarak ayrı kalır.
+  const oracleQ = usePoolOraclePrice(assetId);
   const oraclePrice = oracleQ.data?.price ?? null;
 
   return useMemo(() => {

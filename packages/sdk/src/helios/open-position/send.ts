@@ -69,7 +69,7 @@ export async function signAndSendOpenPosition(
   if (sendResp.status === "ERROR") {
     throw new OpenPositionSendError(
       "SEND_FAILED",
-      `RPC tx'i reddetti (status=ERROR): ${sendResp.errorResult?.result().toString() ?? "no detail"}`,
+      `RPC tx'i reddetti (status=ERROR): ${sendResp.errorResult?.result().switch().name ?? "no detail"}`,
     );
   }
 

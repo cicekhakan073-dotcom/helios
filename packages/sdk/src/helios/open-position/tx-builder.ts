@@ -17,7 +17,7 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 
-import { getAddresses, ASSET_META, type AssetId } from "../../addresses";
+import { getAddresses, sacAddressFor, type AssetId } from "../../addresses";
 import { getRpcServer } from "../../rpc/server";
 
 export interface BuildOpenPositionParams {
@@ -41,23 +41,13 @@ export class OpenPositionBuildError extends Error {
   }
 }
 
-/** AssetId → SAC adresi (NEXT_PUBLIC_*_SAC env'den). PROMPT 24 sonrası dolar. */
+/** AssetId → resmî Blend reserve SAC adresi (Path B; FALLBACK + env override). */
 function resolveSac(assetId: AssetId): string {
-  const meta = ASSET_META[assetId];
-  if (meta.reflector.kind !== "Stellar") {
-    // wBTC/wETH "Other(symbol)" — Helios router için yine de SAC gerek
-    // (Blend reserve `Stellar(SAC)` register edilir). PROMPT 24 sonrası dolacak.
-  }
-  const envKey =
-    meta.reflector.kind === "Stellar"
-      ? meta.reflector.sacAddressEnvKey
-      : `NEXT_PUBLIC_MOCK_${assetId.toUpperCase().replace("W", "W")}_SAC`;
-  const sac =
-    typeof process !== "undefined" && process.env ? process.env[envKey] ?? "" : "";
+  const sac = sacAddressFor(assetId);
   if (!sac) {
     throw new OpenPositionBuildError(
       "MISSING_SAC",
-      `${assetId} için SAC adresi yok (env: ${envKey}). PROMPT 24 (faucet) deploy sonrası set edilir.`,
+      `${assetId} için SAC adresi resolve edilemedi.`,
     );
   }
   return sac;
