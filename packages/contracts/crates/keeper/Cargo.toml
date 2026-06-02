@@ -1,0 +1,34 @@
+[package]
+name = "keeper"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Helios — opt-in tabanlı otomatik kısmi deleverage (Auto-Rebalancer)."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+shared = { workspace = true }
+blend = { workspace = true }
+
+# NOT — `strategy_router` cdylib olarak da derlendiği için keeper cdylib'iyle
+# symbol çakışması yaratır (init/pause/get_admin/...). Soroban-idiomatic
+# çözüm: production'da `env.invoke_contract` ile dinamik çağrı.
+# Testlerde StrategyRouterClient'i kullanabilmek için DEV-DEP olarak ekli.
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+shared = { workspace = true, features = ["testutils"] }
+blend = { workspace = true, features = ["testutils"] }
+strategy_router = { workspace = true, features = ["testutils"] }
+
+[features]
+default = []
+testutils = [
+    "soroban-sdk/testutils",
+    "shared/testutils",
+    "blend/testutils",
+    "strategy_router/testutils",
+]

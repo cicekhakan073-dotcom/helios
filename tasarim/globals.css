@@ -1,0 +1,446 @@
+/* =================================================================
+   Helios — globals.css (Tailwind v4 CSS-first @theme + composites)
+   ---
+   Tek doğruluk kaynağı: ../design-system.md
+   Mirror: ./tokens.ts (TS), shared Rust crate (PROMPT 13 — HF eşikleri)
+   Bu dosya PROMPT 6'da apps/web/app/globals.css'e taşınır (bkz. README.md).
+   ================================================================= */
+
+@import "tailwindcss";
+
+/* =================================================================
+   @theme — Tailwind v4 namespace token'ları (utility generation)
+   ================================================================= */
+@theme {
+
+  /* --- COLORS · Space (background scale, dark-first) ------------- */
+  --color-space-950: hsl(231 53% 2%);
+  --color-space-900: hsl(231 45% 4%);
+  --color-space-800: hsl(229 44% 8%);
+  --color-space-700: hsl(229 43% 12%);
+  --color-space-600: hsl(230 42% 18%);
+  --color-space-500: hsl(231 38% 25%);
+
+  /* --- COLORS · Aurora (brand accents, NOT semantic) ------------- */
+  --color-aurora-amber: hsl(43 96% 56%);
+  --color-aurora-amber-glow: hsl(45 96% 64%);
+  --color-aurora-mauve: hsl(266 100% 76%);
+  --color-aurora-mauve-deep: hsl(263 84% 58%);
+  --color-aurora-teal: hsl(168 76% 64%);
+  --color-aurora-teal-deep: hsl(173 80% 40%);
+
+  /* --- COLORS · Semantic (status) -------------------------------- */
+  --color-success: hsl(142 71% 45%);
+  --color-success-soft: hsl(141 41% 14%);
+  --color-warn: hsl(38 92% 50%);
+  --color-warn-soft: hsl(38 86% 13%);
+  --color-danger: hsl(0 84% 60%);
+  --color-danger-soft: hsl(0 56% 16%);
+  --color-info: hsl(213 94% 68%);
+  --color-info-soft: hsl(218 64% 17%);
+
+  /* --- COLORS · Health Factor (durum — design-system §1.4) ------- */
+  /* Eşikler tek kaynak: HF_HEALTHY_MIN=1.5, HF_CAUTION_MIN=1.2, HF_LIQUIDATION=1.0
+     mirror: tokens.ts + Rust shared crate (PROMPT 13). Drift testi PROMPT 18. */
+  --color-hf-healthy: hsl(142 71% 45%);       /* = success */
+  --color-hf-caution: hsl(38 92% 50%);        /* = warn */
+  --color-hf-danger: hsl(0 84% 60%);          /* = danger */
+  --color-hf-liquidatable: hsl(0 73% 41%);    /* #B91C1C */
+
+  /* --- COLORS · Text (kontrast hiyerarşisi) --------------------- */
+  --color-text-high: hsl(210 40% 98%);
+  --color-text-medium: hsl(213 27% 84%);
+  --color-text-low: hsl(215 20% 65%);
+  --color-text-disabled: hsl(215 16% 47%);
+  --color-text-on-aurora: hsl(229 44% 8%);
+  --color-text-link: hsl(213 94% 68%);
+  --color-text-link-hover: hsl(168 76% 64%);
+
+  /* --- COLORS · Border / Overlay -------------------------------- */
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-default: rgba(255, 255, 255, 0.10);
+  --color-border-strong: rgba(255, 255, 255, 0.20);
+  --color-overlay-modal: rgba(3, 4, 10, 0.72);
+  --color-overlay-hover: rgba(255, 255, 255, 0.04);
+
+  /* --- FONT family ---------------------------------------------- */
+  --font-sans: "Geist Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-sans);
+
+  /* --- TEXT scale (paired: font-size + line-height + letter-spacing + font-weight) */
+  --text-display: 3.5rem;
+  --text-display--line-height: 1.14;
+  --text-display--letter-spacing: -0.025em;
+  --text-display--font-weight: 700;
+
+  --text-h1: 2.5rem;
+  --text-h1--line-height: 1.2;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 700;
+
+  --text-h2: 1.875rem;
+  --text-h2--line-height: 1.27;
+  --text-h2--letter-spacing: -0.015em;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1.375rem;
+  --text-h3--line-height: 1.36;
+  --text-h3--letter-spacing: -0.01em;
+  --text-h3--font-weight: 600;
+
+  --text-h4: 1.125rem;
+  --text-h4--line-height: 1.44;
+  --text-h4--letter-spacing: -0.005em;
+  --text-h4--font-weight: 600;
+
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.5;
+  --text-body-lg--font-weight: 400;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.57;
+  --text-body--font-weight: 400;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.5;
+  --text-caption--letter-spacing: 0.02em;
+  --text-caption--font-weight: 500;
+
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.45;
+  --text-micro--letter-spacing: 0.04em;
+  --text-micro--font-weight: 600;
+
+  --text-numeric-xl: 2.25rem;
+  --text-numeric-xl--line-height: 1.17;
+  --text-numeric-xl--letter-spacing: -0.02em;
+  --text-numeric-xl--font-weight: 700;
+
+  --text-numeric-lg: 1.5rem;
+  --text-numeric-lg--line-height: 1.25;
+  --text-numeric-lg--letter-spacing: -0.01em;
+  --text-numeric-lg--font-weight: 600;
+
+  --text-numeric-md: 1rem;
+  --text-numeric-md--line-height: 1.375;
+  --text-numeric-md--font-weight: 500;
+
+  /* --- SPACING (4px base — tek skalar; p-1=4px, p-4=16px, p-24=96px) */
+  --spacing: 0.25rem;
+
+  /* --- RADIUS --------------------------------------------------- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-pill: 9999px;
+
+  /* --- SHADOW / Elevation -------------------------------------- */
+  --shadow-elev-0: none;
+  --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.55);
+  --shadow-elev-4: 0 24px 60px rgba(0, 0, 0, 0.65);
+  --shadow-glow-amber: 0 0 32px rgba(251, 191, 36, 0.32);
+  --shadow-glow-mauve: 0 0 28px rgba(181, 131, 255, 0.28);
+  --shadow-glow-teal: 0 0 24px rgba(94, 234, 212, 0.30);
+  --shadow-glow-danger: 0 0 24px rgba(239, 68, 68, 0.36);
+
+  /* --- INSET SHADOW (GlassPanel inner highlight) --------------- */
+  --inset-shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* --- BLUR (glassmorphism) ------------------------------------ */
+  --blur-glass: 20px;
+
+  /* --- EASING (Framer Motion array karşılığı tokens.ts'te) ----- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-emphasis: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring-soft: cubic-bezier(0.34, 1.36, 0.64, 1);
+
+  /* --- ANIMATION (keyframes alt blokta) ------------------------ */
+  --animate-aurora-amber: aurora-amber 16s var(--ease-standard) infinite;
+  --animate-aurora-mauve: aurora-mauve 20s var(--ease-standard) infinite;
+  --animate-aurora-teal: aurora-teal 24s var(--ease-standard) infinite;
+  --animate-shimmer: shimmer 1200ms ease-in-out infinite;
+  --animate-pulse-danger: pulse-danger 1500ms ease-in-out infinite;
+  --animate-tx-burst: tx-burst 360ms var(--ease-emphasis) 1;
+  --animate-count-up: count-up 200ms var(--ease-emphasis) 1;
+
+}
+
+/* =================================================================
+   :root — Composite / derived tokens (utility üretmez, custom prop)
+   ================================================================= */
+:root {
+
+  /* --- Aurora marka gradient'i (3-stop) ------------------------ */
+  --gradient-aurora: linear-gradient(
+    135deg,
+    var(--color-aurora-amber) 0%,
+    var(--color-aurora-mauve) 45%,
+    var(--color-aurora-teal) 100%
+  );
+
+  /* --- GlassPanel kompozit ------------------------------------- */
+  --glass-bg: rgba(17, 22, 43, 0.55);
+  --glass-bg-fallback: rgba(11, 14, 28, 0.92);
+  --glass-backdrop: blur(var(--blur-glass)) saturate(140%);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* --- Focus ring (a11y) -------------------------------------- */
+  --focus-ring: 3px solid var(--color-aurora-teal);
+  --focus-ring-offset: 2px;
+
+  /* --- Motion duration ms (Tailwind v4 standalone --duration-*
+     namespace yok; bunlar arbitrary value + tokens.ts üzerinden tüketilir) */
+  --duration-instant: 80ms;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 360ms;
+  --duration-slower: 600ms;
+  --duration-ambient: 18s;
+
+  /* --- HF eşik değerleri (drift-prevented; mirror: tokens.ts + Rust shared) */
+  --hf-healthy-min: 1.5;
+  --hf-caution-min: 1.2;
+  --hf-liquidation: 1.0;
+
+  /* --- Oracle freshness eşikleri (AUDIT §1.6) ------------------ */
+  --oracle-staleness-warn-ms: 300000;   /* 5 dk → "stale" rozet */
+  --oracle-staleness-block-ms: 600000;  /* 10 dk → UI guard disabled */
+
+}
+
+/* =================================================================
+   Dark-first base — varsayılan koyu tema
+   Açık tema için yapı bırakıldı; uygulama yok.
+   ================================================================= */
+
+html {
+  color-scheme: dark;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-space-900);
+  color: var(--color-text-medium);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  min-height: 100dvh;
+}
+
+/* Future light-theme hook — gövdesi yok bilinçli. */
+:root[data-theme="light"] {
+  /* TODO: bkz. design-system.md §1 — açık tema gerekirse buraya override'lar gelir. */
+}
+
+/* =================================================================
+   Finansal sayı disiplini — design-system §2.3
+   Her sayı bileşeni .tabular veya [data-num] taşımalı.
+   ================================================================= */
+
+.tabular,
+[data-num] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* =================================================================
+   Focus-visible global (a11y — design-system §8.3)
+   ================================================================= */
+
+*:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+/* =================================================================
+   GlassPanel temel sınıfı — packages/ui'de cva sarmalanır (PROMPT 6)
+   ================================================================= */
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: var(--glass-border);
+  box-shadow: var(--inset-shadow-glass), var(--shadow-elev-2);
+  border-radius: var(--radius-xl);
+  padding: calc(var(--spacing) * 6);
+}
+
+.glass-panel--elevated {
+  box-shadow: var(--inset-shadow-glass), var(--shadow-elev-3), var(--shadow-glow-mauve);
+}
+
+.glass-panel--bordered-aurora {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box,
+    var(--gradient-aurora) border-box;
+}
+
+.glass-panel--danger {
+  border-color: rgba(239, 68, 68, 0.30);
+  box-shadow: var(--shadow-elev-2), var(--shadow-glow-danger);
+}
+
+/* @supports fallback — eski tarayıcı (backdrop-filter yok) */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-panel,
+  .glass-panel--elevated,
+  .glass-panel--bordered-aurora,
+  .glass-panel--danger {
+    background: var(--glass-bg-fallback);
+    backdrop-filter: none;
+  }
+}
+
+/* =================================================================
+   AuroraBackground container — bileşen iskeleti (PROMPT 6 dolacak)
+   ================================================================= */
+
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--color-space-950);
+  overflow: hidden;
+}
+
+.aurora-bg__blob {
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  filter: blur(80px);
+  opacity: 0.35;
+  border-radius: 50%;
+}
+
+.aurora-bg__blob--amber {
+  background: var(--color-aurora-amber);
+  animation: var(--animate-aurora-amber);
+  top: -20%;
+  left: -10%;
+}
+
+.aurora-bg__blob--mauve {
+  background: var(--color-aurora-mauve);
+  animation: var(--animate-aurora-mauve);
+  top: -10%;
+  right: -15%;
+  animation-delay: -4s;
+}
+
+.aurora-bg__blob--teal {
+  background: var(--color-aurora-teal);
+  animation: var(--animate-aurora-teal);
+  bottom: -20%;
+  left: 20%;
+  animation-delay: -8s;
+}
+
+.aurora-bg__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    var(--color-space-950) 100%
+  );
+  opacity: 0.6;
+}
+
+/* =================================================================
+   DisclaimerStrip (Unaudited · Testnet · Not financial advice)
+   design-system §7.9 — testnet dürüstlük şeridi.
+   ================================================================= */
+
+.disclaimer-strip {
+  background-color: var(--color-space-800);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  font-size: var(--text-caption);
+  color: var(--color-text-low);
+}
+
+.disclaimer-strip strong {
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-medium);
+}
+
+/* =================================================================
+   KEYFRAMES — Aurora ambient + UI microinteractions
+   ================================================================= */
+
+@keyframes aurora-amber {
+  0%   { transform: translate3d(-15%, -10%, 0) scale(1); }
+  33%  { transform: translate3d( 25%,  10%, 0) scale(1.10); }
+  66%  { transform: translate3d(-10%,  20%, 0) scale(0.95); }
+  100% { transform: translate3d(-15%, -10%, 0) scale(1); }
+}
+
+@keyframes aurora-mauve {
+  0%   { transform: translate3d( 20%, -15%, 0) scale(1); }
+  33%  { transform: translate3d(-15%,   5%, 0) scale(1.05); }
+  66%  { transform: translate3d( 25%,  15%, 0) scale(1.00); }
+  100% { transform: translate3d( 20%, -15%, 0) scale(1); }
+}
+
+@keyframes aurora-teal {
+  0%   { transform: translate3d(  0%,  20%, 0) scale(1); }
+  33%  { transform: translate3d( 20%, -15%, 0) scale(1.10); }
+  66%  { transform: translate3d(-20%,  10%, 0) scale(0.95); }
+  100% { transform: translate3d(  0%,  20%, 0) scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulse-danger {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.36); }
+  50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+@keyframes tx-burst {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1.00); opacity: 1; }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =================================================================
+   Reduced motion — a11y (design-system §8.4)
+   ================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 80ms !important;
+    scroll-behavior: auto !important;
+  }
+  .aurora-bg__blob {
+    animation: none !important;
+  }
+}

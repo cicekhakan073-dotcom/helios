@@ -1,0 +1,58 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/shared",
+    "crates/oracle",
+    "crates/blend",
+    "crates/strategy_router",
+    "crates/keeper",
+]
+
+# ---------------------------------------------------------------------------
+# Workspace-level dependency pins — kesin (=); caret/tilde YOK.
+# Pin tarihi: 2026-06-01 (crates.io ile birebir doğrulandı).
+# Tek doğruluk kaynağı: ../../STELLAR_STACK.md
+# AUDIT 2026-05-31 (../../ROADMAP.md "AUDIT" bölümü):
+#   - flash_lender ve vault SİLİNDİ (Blend kendi flash_loan + get_positions
+#     sağlıyor). Bu workspace 4 → 2 üye + 1 shared.
+# ---------------------------------------------------------------------------
+[workspace.dependencies]
+soroban-sdk = { version = "=26.0.1", default-features = false }
+
+# OpenZeppelin Stellar Contracts (path tabanlı paket adları)
+# AUDIT §1.3: stellar-contract-utils altında vault YOK; vault `stellar-tokens`'te.
+# Helios vault kullanmıyor; stellar-tokens'i SEP-41 mock token için (PROMPT 15)
+# ileride bağlarız. Burada workspace'e tanıtım.
+stellar-access = { version = "=0.7.1", default-features = false }
+stellar-tokens = { version = "=0.7.1", default-features = false }
+stellar-contract-utils = { version = "=0.7.1", default-features = false }
+stellar-macros = { version = "=0.7.1", default-features = false }
+
+# NOT: `sep-40-oracle` crate (1.4.0) soroban-sdk 25.x pinli; biz 26.0.1
+# kullandığımız için tip çatışması (Symbol/Address iki versiyon arası uyumsuz).
+# Çözüm: SEP-40 trait'i Helios `oracle::sep40` modülünde **kopya** ile tanımlı
+# (kaynak: github.com/script3/sep-40-oracle, 2026-05-31 raw doğrulama).
+
+# Helios internal
+shared = { path = "crates/shared" }
+oracle = { path = "crates/oracle" }
+blend = { path = "crates/blend" }
+strategy_router = { path = "crates/strategy_router" }
+
+# ---------------------------------------------------------------------------
+# Release profile — Soroban wasm boyutu için aggressive optimize.
+# 64KB kontrat limiti için kritik.
+# ---------------------------------------------------------------------------
+[profile.release]
+opt-level = "z"          # boyut için
+lto = true               # link-time optimization
+codegen-units = 1        # tek birim → daha iyi inlining
+panic = "abort"          # unwind tablosu yok
+overflow-checks = true   # int taşma kontrolleri release'de AÇIK (finansal kod için zorunlu)
+debug = false
+strip = "symbols"        # debug symbol'leri at
+
+# Tests için test profili (overflow-checks zaten on default)
+[profile.release-with-logs]
+inherits = "release"
+debug-assertions = true

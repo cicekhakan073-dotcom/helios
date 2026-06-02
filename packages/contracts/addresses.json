@@ -1,0 +1,45 @@
+{
+  "_meta": {
+    "network": "testnet",
+    "passphrase": "Test SDF Network ; September 2015",
+    "deployed_at": "2026-06-01T18:51:30Z",
+    "deployer": "GAQUEFDOXDAFEE7R3LKDA3BUGDTNJBFQZP7MPHEGZIJVWBWCABV7APYM",
+    "updated_at": "2026-06-02",
+    "audit_path": "B",
+    "notes": [
+      "Helios kontratları scripts/deploy-testnet.sh ile deploy edildi.",
+      "AUDIT 2026-06-02 §6.1 — Path B: resmî TestnetV2 pool kullanılıyor; admin biz değiliz, AMA 4 reserve zaten kayıtlı (XLM/USDC/wBTC/wETH), pool aktif (status=0), max_positions=8.",
+      "tokens.* = pool'da kayıtlı reserve adresleri (CANLI doğrulandı 2026-06-02).",
+      "blend.pool_oracle = CAZOKR2Y — HF tutarlılığı için Helios fiyat okumaları bu oracle'dan yapılır."
+    ]
+  },
+  "helios": {
+    "strategy_router": "CANADBXQEXJRMMRDMKTQ3LY5MNV35FC77HJGNYJWAERVUX7OE4OG32XY",
+    "keeper":          "CDWMZI7CCSUZ6SNTACYGUHDVDGY4J4BZDKVZ4HTRRSGKBBIMXBE4DUMU"
+  },
+  "blend": {
+    "pool":          "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "pool_oracle":   "CAZOKR2Y5E2OSWSIBRVZMJ47RUTQPIGVWSAQ2UISGAVC46XKPGDG5PKI",
+    "backstop":      "CBDVWXT433PRVTUNM56C3JREF3HIZHRBA64NB2C3B2UNCKIS65ZYCLZA",
+    "pool_factory":  "CDV6RX4CGPCOKGTBFS52V3LMWQGZN3LCQTXF5RVPOOCG4XVMHXQ4NTF6",
+    "emitter":       "CC3WJVJINN4E3LPMNTWKK7LQZLYDQMZHZA7EZGXATPHHBPKNZRIO3KZ6"
+  },
+  "reflector": {
+    "stellar_dex":    "CAVLP5DH2GJPZMVO7IJY4CVOD5MWEFTJFVPD2YY2FQXOQHRGHK4D6HLP",
+    "external_cex":   "CCYOZJCOPG34LLQQ7N24YXBM7LL62R7ONMZ3G6WZAAYPB5OYKOMJRN63",
+    "fiat":           "CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W",
+    "_doc": "AUDIT 2026-06-02 §6.1 — fiyat okumaları blend.pool_oracle'dan; reflector burada referans olarak kalır."
+  },
+  "tokens": {
+    "_doc": "AUDIT 2026-06-02 §6.1 — resmî TestnetV2 pool reserve adresleri (canlı doğrulandı 2026-06-02). Mint yetkisi # DOĞRULA — PROMPT 24'te faucet stratejisi netleşir.",
+    "xlm_sac":  "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "usdc_sac": "CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU",
+    "wbtc_sac": "CAP5AMC2OHNVREO66DFIN6DHJMPOBAJ2KCDDIMFBR7WWJH5RZBFM3UEI",
+    "weth_sac": "CAZAQB3D7KSLSNOSQKYD2V4JP5V2Y3B4RDJZRLBFCCIXDCTE3WHSY3UE"
+  },
+  "config": {
+    "max_leverage_bps":  500,
+    "min_open_hf_bps":   130,
+    "flash_fee_bps":     0
+  }
+}

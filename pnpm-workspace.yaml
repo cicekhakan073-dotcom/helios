@@ -1,0 +1,18 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+allowBuilds:
+  '@reown/appkit': true
+  '@stellar/stellar-sdk': true
+  blake-hash: true
+  bufferutil: true
+  protobufjs: true
+  secp256k1: true
+  sharp: true
+  tiny-secp256k1: true
+  unrs-resolver: true
+  usb: true
+  utf-8-validate: true
+minimumReleaseAgeExclude:
+  - lint-staged@17.0.7
+  - tinyexec@1.2.4

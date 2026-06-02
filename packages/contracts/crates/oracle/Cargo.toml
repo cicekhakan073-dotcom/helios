@@ -1,0 +1,23 @@
+[package]
+name = "oracle"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Helios — Reflector V3 (SEP-40) oracle client + staleness/sanity guard'ları."
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+shared = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+shared = { workspace = true, features = ["testutils"] }
+
+[features]
+default = []
+# Mock SEP-40 oracle kontratı — diğer Helios kontratlarının (router) test'inde
+# de kullanılabilir. Sadece testutils feature ile derlenir.
+testutils = ["soroban-sdk/testutils", "shared/testutils"]

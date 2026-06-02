@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "network": "testnet",
+    "passphrase": "Test SDF Network ; September 2015",
+    "deployed_at": null,
+    "deployer": null,
+    "notes": [
+      "scripts/deploy-testnet.sh tarafından yeniden üretilir.",
+      "Testnet adresleri reset'lerde değişebilir.",
+      "Mock SEP-41 token adresleri PROMPT 24 (faucet) tarafından eklenecek."
+    ]
+  },
+  "helios": {
+    "strategy_router": null,
+    "keeper": null
+  },
+  "blend": {
+    "pool": "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
+    "backstop": "CBDVWXT433PRVTUNM56C3JREF3HIZHRBA64NB2C3B2UNCKIS65ZYCLZA",
+    "pool_factory": "CDV6RX4CGPCOKGTBFS52V3LMWQGZN3LCQTXF5RVPOOCG4XVMHXQ4NTF6",
+    "emitter": "CC3WJVJINN4E3LPMNTWKK7LQZLYDQMZHZA7EZGXATPHHBPKNZRIO3KZ6"
+  },
+  "reflector": {
+    "stellar_dex": "CAVLP5DH2GJPZMVO7IJY4CVOD5MWEFTJFVPD2YY2FQXOQHRGHK4D6HLP",
+    "external_cex": "CCYOZJCOPG34LLQQ7N24YXBM7LL62R7ONMZ3G6WZAAYPB5OYKOMJRN63",
+    "fiat": "CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W"
+  },
+  "tokens": {
+    "_doc_doğrula": "PROMPT 24 (faucet) eklemek için",
+    "usdc_sac": null,
+    "xlm_sac": null,
+    "wbtc_sac": null,
+    "weth_sac": null
+  },
+  "config": {
+    "max_leverage_bps": 500,
+    "min_open_hf_bps": 130,
+    "flash_fee_bps": 0
+  }
+}

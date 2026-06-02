@@ -1,0 +1,23 @@
+node_modules
+.next
+.turbo
+dist
+coverage
+target
+pnpm-lock.yaml
+.pnpm-store
+
+# Generated
+**/next-env.d.ts
+**/*.d.ts.map
+**/*.js.map
+
+# Markdown — token tabloları, prettier kırabilir
+ROADMAP.md
+ROADMAP-CHANGELOG.md
+STELLAR_STACK.md
+CLAUDE.md
+VISION.md
+design-system.md
+tasarim/README.md
+packages/contracts/README.md

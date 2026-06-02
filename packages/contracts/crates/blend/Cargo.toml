@@ -1,0 +1,22 @@
+[package]
+name = "blend"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Helios — Blend v2 pool cross-contract istemcisi + Request builder'ları."
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+shared = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+shared = { workspace = true, features = ["testutils"] }
+
+[features]
+default = []
+# MockBlendPool kontratı; testler ve diğer crate'lerin entegrasyon testleri için.
+testutils = ["soroban-sdk/testutils", "shared/testutils"]

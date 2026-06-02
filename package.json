@@ -1,0 +1,54 @@
+{
+  "name": "helios",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Helios — Stellar/Soroban üzerinde AI destekli, çoklu varlık, kaldıraçlı verim platformu (TESTNET-ONLY, UNAUDITED).",
+  "packageManager": "pnpm@11.5.0",
+  "engines": {
+    "node": ">=20.9.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,yaml,yml,css}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,yaml,yml,css}\" --ignore-path .prettierignore",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "prepare": "husky || true"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.4",
+    "@next/eslint-plugin-next": "16.2.6",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitest/coverage-v8": "4.1.7",
+    "eslint": "9.39.4",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-plugin-import-x": "4.16.2",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.6.0",
+    "husky": "9.1.7",
+    "jsdom": "29.1.1",
+    "lint-staged": "17.0.7",
+    "prettier": "3.8.3",
+    "turbo": "2.9.16",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.60.0",
+    "vitest": "4.1.7"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yaml,yml,css}": [
+      "prettier --write"
+    ]
+  }
+}

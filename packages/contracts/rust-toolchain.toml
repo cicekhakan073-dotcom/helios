@@ -1,0 +1,8 @@
+[toolchain]
+# Soroban resmi gereksinim: Rust >= 1.84.0.
+# Yerel doğrulama (2026-06-01): rustc 1.93.1 ile temiz çalışıyor.
+# Toolchain pin "1.93" → 1.93.x patch'lerini kabul eder.
+channel = "1.93"
+components = ["rustfmt", "clippy"]
+targets = ["wasm32v1-none"]
+profile = "minimal"

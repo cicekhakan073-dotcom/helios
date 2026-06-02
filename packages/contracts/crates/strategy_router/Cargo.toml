@@ -1,0 +1,27 @@
+[package]
+name = "strategy_router"
+version = "0.0.0"
+edition = "2021"
+publish = false
+description = "Helios — atomik tek-tx kaldıraç orchestrator'ı (Blend pool.flash_loan sarmalayıcı)."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+shared = { workspace = true }
+blend = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+shared = { workspace = true, features = ["testutils"] }
+blend = { workspace = true, features = ["testutils"] }
+
+[features]
+default = []
+testutils = ["soroban-sdk/testutils", "shared/testutils", "blend/testutils"]
+
+# Diğer crate'lerin testlerinde StrategyRouterClient'i kullanmak için
+# (`#[cfg(test)]` derleme zamanında ekstra feature gerektirmez ama
+# inter-crate test fixture'ları için cdylib'i de export edebilmek lazım).
