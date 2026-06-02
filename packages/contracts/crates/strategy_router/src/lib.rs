@@ -42,7 +42,7 @@ use blend::actions::{
 };
 use blend::{FlashLoan, PoolClient, Positions, Request};
 use shared::HeliosError;
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, Symbol, Vec};
+use soroban_sdk::{contract, contractimpl, symbol_short, token, Address, Env, Symbol, Vec};
 
 // ============================================================================
 // Storage anahtarları
@@ -157,6 +157,35 @@ impl StrategyRouter {
         env.storage().instance().set(&KEY_MIN_HF, &min_open_hf_bps);
         env.storage().instance().set(&KEY_FLASH_BPS, &flash_fee_bps);
         Ok(())
+    }
+
+    /// Blend flash_loan callback'i — AUDIT 2026-06-02 §6.8 (KRİTİK).
+    ///
+    /// Blend v2 `pool.flash_loan`, flash fonunu bu kontrata transfer ettikten
+    /// SONRA `FlashLoanClient(flash.contract).exec_op(&from, &asset, &amount, &0)`
+    /// çağırır (kaynak: blend-contracts-v2 pool/src/pool/submit.rs). Bu fn olmadan
+    /// flash_loan dispatch hatasıyla revert eder.
+    ///
+    /// İmza, Blend'in `FlashLoan` trait'i + referans receiver `mocks/moderc3156`
+    /// ile BİREBİR: `exec_op(caller: Address, token: Address, amount: i128, fee: i128)`.
+    ///
+    /// Davranış (moderc3156 deseni): aldığı flash fonunu `caller`'a (open_position'daki
+    /// user) geri transfer eder → böylece sonraki `SupplyCollateral(principal+flash)`
+    /// request'i user'ın bakiyesinden (principal + yeni gelen flash) fonlanır.
+    ///
+    /// GÜVENLİK: `caller.require_auth()` — standalone kötüye kullanımı engeller
+    /// (router yalnız flash_loan sırasında transient bakiye tutar; flash dışı çağrıda
+    /// caller imzası yoksa revert, bakiye de ~0). Blend `from`'u zaten tx auth ağında
+    /// imzaladığından flash_loan içinden çağrı geçer.
+    pub fn exec_op(env: Env, caller: Address, token: Address, amount: i128, _fee: i128) {
+        caller.require_auth();
+        token::TokenClient::new(&env, &token).transfer(
+            &env.current_contract_address(),
+            &caller,
+            &amount,
+        );
+        // _fee: Blend pool fee'si requests/Borrow tarafında karşılanır (AUDIT §2.6 —
+        // Helios kendi fee'si yok). Burada ek transfer gerekmez.
     }
 
     /// Atomik tek-tx kaldıraç açılışı.
