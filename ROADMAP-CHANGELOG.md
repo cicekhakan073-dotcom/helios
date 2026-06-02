@@ -331,3 +331,41 @@ Helios'un `borrow_amount = flash_amount + flash_fee` kullanması ek sapma
 yaratıyor. close_position symmetric akışı (Repay + WithdrawCollateral) tasarımdan
 ETKİLENMEZ çünkü Repay zaten "var olan d-tokens'ları sil" semantiği taşıyor; ama
 PROMPT 12-FIX-VI'da onun da yeniden doğrulanması önerilir.
+
+---
+
+## TEŞHİS 2026-06-03 — Faucet kısıtı (USDC/wBTC/wETH otomatik mint imkansız)
+
+**Bağlam:** PROMPT 24 faucet kapsamı — Helios'un kendi admin keypair'iyle resmî
+TestnetV2 pool'unun USDC/wBTC/wETH SAC'larına `mint` denendi → `Error(Contract, #13)`
+"trustline entry missing" + issuer auth. Yani Helios admin **issuer DEĞİL**.
+
+**Canlı kanıt (2026-06-03):**
+```
+$ stellar contract invoke --id CAQCFVLO… -- name  → "USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56"
+$ stellar contract invoke --id CAP5AMC2… -- name  → "wBTC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56"
+$ stellar contract invoke --id CAZAQB3D… -- name  → "wETH:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56"
+$ curl horizon-testnet.stellar.org/accounts/GATALTGT…  → balances: [(XLM, 19931.42)], auth_required: false
+```
+
+Üç asset'in issuer'ı tek hesap (`GATALTGT…`). Issuer flag `auth_required=false` —
+trustline serbest, AMA mint için issuer secret gerekir, biz issuer değiliz.
+`blend-utils/testnet.contracts.json` (Blend resmî repo) faucet/distributor
+açıklamıyor; Blend docs `tech-docs/testnet` 404; `llms-full.txt`'de "no faucet
+mentioned".
+
+**Sonuç:**
+- XLM Friendbot ile fonlanır (PROMPT 24 `/api/faucet` çalışıyor).
+- USDC/wBTC/wETH **otomatik faucet'i Helios'tan veremez**. UI dürüst manuel
+  yönlendirme: Soroswap testnet (XLM→USDC swap), StellarTerm Testnet manuel
+  transfer veya Blend Discord faucet kanalı. Çalışmayan mint butonu YAZILMADI
+  (CLAUDE.md "uydurma YOK" disiplini).
+- Demo akışı tek-asset (XLM) üzerinden uçtan uca canlı; AUDIT 2026-06-02 §6.1
+  Path B + cap 2× ile tutarlı.
+
+**Etki / takip:**
+- Diğer asset'lerin uçtan uca demo'su (open + close + dashboard) yalnız XLM ile
+  geçer. PROMPT 28+'da gerçek USDC akışını isteyenler için: (a) Helios'a özel
+  mock SEP-41 contract deploy (yeni Path A — vakit/maliyet) veya (b) Soroswap
+  entegrasyonu (PROMPT 27 marketplace fizibilitesiyle birlikte). Karar PROMPT
+  audit kapsamında.
