@@ -15,7 +15,9 @@ import { create } from "zustand";
 
 import type { AssetId } from "@helios/sdk";
 
-const DEFAULT_ASSET: AssetId = "USDC";
+// XLM: Helios testnet'te kullanıcının kendi fonlayabildiği TEK asset (native,
+// Friendbot). USDC/wBTC/wETH faucet'lenemez → varsayılan XLM (canlı doğrulandı 2026-06-03).
+const DEFAULT_ASSET: AssetId = "XLM";
 const DEFAULT_LEVERAGE_BPS = 100; // 1x (slider başlangıcı)
 
 export const MIN_LEVERAGE_BPS = 100;

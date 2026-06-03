@@ -19,13 +19,49 @@ export interface VaultConfig {
   maxLeverageBps: number;
   /** UI rengi / ikon hint'i. */
   brandHint: "amber" | "mauve" | "teal" | "info";
+  /**
+   * Kullanıcının Helios testnet'inde KENDİ fonlayabileceği asset mi?
+   * Canlı doğrulandı 2026-06-03: yalnız XLM (native, Friendbot). USDC/wBTC/wETH
+   * resmî TestnetV2 classic-asset'leri (issuer GATALTGT…) → faucet YOK + trustline
+   * gerekir → kullanıcı pozisyon açamaz (open_position Error(Contract,#13) "trustline
+   * missing"). Bu yüzden UI'da seçilemez. Issuer/faucet yolu açılırsa true yap.
+   */
+  selfServiceable: boolean;
 }
 
 export const VAULTS: readonly VaultConfig[] = [
-  { id: "USDC", label: "USDC (stable)", defaultLeverageBps: 300, maxLeverageBps: 500, brandHint: "amber" },
-  { id: "XLM", label: "XLM (native)", defaultLeverageBps: 200, maxLeverageBps: 400, brandHint: "teal" },
-  { id: "wBTC", label: "Wrapped BTC", defaultLeverageBps: 250, maxLeverageBps: 350, brandHint: "amber" },
-  { id: "wETH", label: "Wrapped ETH", defaultLeverageBps: 250, maxLeverageBps: 350, brandHint: "mauve" },
+  {
+    id: "USDC",
+    label: "USDC (stable)",
+    defaultLeverageBps: 300,
+    maxLeverageBps: 500,
+    brandHint: "amber",
+    selfServiceable: false,
+  },
+  {
+    id: "XLM",
+    label: "XLM (native)",
+    defaultLeverageBps: 200,
+    maxLeverageBps: 400,
+    brandHint: "teal",
+    selfServiceable: true,
+  },
+  {
+    id: "wBTC",
+    label: "Wrapped BTC",
+    defaultLeverageBps: 250,
+    maxLeverageBps: 350,
+    brandHint: "amber",
+    selfServiceable: false,
+  },
+  {
+    id: "wETH",
+    label: "Wrapped ETH",
+    defaultLeverageBps: 250,
+    maxLeverageBps: 350,
+    brandHint: "mauve",
+    selfServiceable: false,
+  },
 ];
 
 export interface StrategyConfig {
