@@ -33,9 +33,7 @@ export default function LandingPage() {
       </main>
       <footer className="border-t border-border-subtle py-8 px-6">
         <div className="mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-caption text-text-low m-0">
-            © Helios — {brand.disclaimer}
-          </p>
+          <p className="text-caption text-text-low m-0">© Helios — {brand.disclaimer}</p>
           <p className="text-caption text-text-low m-0">
             Stellar Testnet · Soroban · Blend v2 · Reflector V3
           </p>
@@ -45,24 +43,27 @@ export default function LandingPage() {
   );
 }
 
-/** Güven/dürüstlük şeridi — landing ortasında bir kez daha. */
+/** Trust/honesty strip — shown once more in the middle of the landing. */
 function TrustStrip() {
   return (
     <section className="py-12 px-6">
       <div className="mx-auto max-w-3xl rounded-lg bg-space-700 border border-border-default p-6 flex flex-col gap-3">
-        <h3 className="text-h3 text-text-high m-0">Dürüstlük ilkeleri</h3>
+        <h3 className="text-h3 text-text-high m-0">Honesty principles</h3>
         <ul className="text-body text-text-medium m-0 pl-6 list-disc flex flex-col gap-1">
           <li>
-            <strong>Testnet-only</strong> — hiçbir akış mainnet&apos;e iletilmez. Gerçek para iması yoktur.
+            <strong>Testnet-only</strong> — no flow is ever sent to mainnet. No real money is
+            implied.
           </li>
           <li>
-            <strong>Unaudited</strong> — Helios kontratları denetimden geçmemiştir.
+            <strong>Unaudited</strong> — Helios contracts have not been audited.
           </li>
           <li>
-            <strong>Not financial advice</strong> — AI Copilot çıktısı dahil tüm içerik eğitim amaçlıdır.
+            <strong>Not financial advice</strong> — all content, including AI Copilot output, is
+            educational.
           </li>
           <li>
-            <strong>Oracle risk</strong> — Reflector fiyatlarına staleness ve TWAP sanity bound uygulanır.
+            <strong>Oracle risk</strong> — Reflector prices are subject to staleness and TWAP sanity
+            bounds.
           </li>
         </ul>
       </div>
