@@ -2,8 +2,8 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
-  '@reown/appkit': true
-  '@stellar/stellar-sdk': true
+  "@reown/appkit": true
+  "@stellar/stellar-sdk": true
   blake-hash: true
   bufferutil: true
   protobufjs: true
@@ -16,3 +16,5 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - lint-staged@17.0.7
   - tinyexec@1.2.4
+  - "@ai-sdk/gateway@3.0.123"
+  - ai@6.0.195
