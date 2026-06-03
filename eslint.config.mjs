@@ -38,6 +38,10 @@ export default tseslint.config(
       "**/*.config.{js,mjs,cjs,ts,mts,cts}",
       "**/next-env.d.ts",
       "tasarim/**",
+      // PROMPT 31 — Service worker dosyası tsconfig projeSi'ne dahil değil;
+      // tarayıcı runtime'ı (DedicatedWorkerGlobalScope-ish). ESLint typed
+      // lint'i atlasın.
+      "apps/web/public/sw.js",
     ],
   },
 

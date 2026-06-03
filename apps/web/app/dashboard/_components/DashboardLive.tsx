@@ -43,6 +43,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { CopilotLauncher } from "../../_components/copilot/CopilotLauncher";
+import { PushPanel } from "../../_components/push/PushPanel";
 import { formatPrincipal } from "../../open/_state/wizard-store";
 
 import { HfProjectionChart } from "./HfProjectionChart";
@@ -159,6 +160,7 @@ export function DashboardLive({ address }: Props) {
         hf={hfComputed}
       />
       <OptInPanel address={address} />
+      <PushPanel />
       <LastRebalanceStrip />
       <CopilotLauncher
         context={{

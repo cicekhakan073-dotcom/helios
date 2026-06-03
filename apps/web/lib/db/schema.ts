@@ -80,7 +80,21 @@ export const follows = pgTable(
   ],
 );
 
+/** Web Push subscription (PROMPT 31). Bir account birden çok cihaz olabilir;
+ *  endpoint PK (gerçek browser endpoint). lastSentAt → keeper scan spam guard. */
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  endpoint: text("endpoint").primaryKey(),
+  account: text("account").notNull(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+  lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
+});
+
 export type UserRow = typeof users.$inferSelect;
 export type PositionSnapshotRow = typeof positionsSnapshot.$inferSelect;
 export type StrategyRow = typeof strategies.$inferSelect;
 export type FollowRow = typeof follows.$inferSelect;
+export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;

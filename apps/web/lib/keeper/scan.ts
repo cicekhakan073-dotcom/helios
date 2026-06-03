@@ -29,6 +29,8 @@ import {
   type AssetId,
 } from "@helios/sdk";
 
+import { sendToAccount } from "../push/sender";
+
 import {
   acquireRebalanceLock,
   listOptInCandidates,
@@ -203,6 +205,20 @@ export async function runScan(keeperPublicKey: string, keeperSecret: string): Pr
       continue;
     }
     summary.triggered++;
+
+    // PROMPT 31: HF<trigger durumunda push bildirimi gönder (rebalance kararından
+    // BAĞIMSIZ — bildirim tx atmaz, throttle 10dk sender içinde). Hata route'u
+    // bozmaz.
+    void sendToAccount(
+      user,
+      {
+        title: "HF eşiği aşıldı",
+        body: `Pozisyon HF=${ctx.hfFloat.toFixed(2)} (trigger ${(ctx.triggerHfBps / 100).toFixed(2)}). Helios'u kontrol et.`,
+        tag: `helios-hf-${user}`,
+        url: "/dashboard",
+      },
+      { throttleSeconds: 600 },
+    ).catch(() => undefined);
 
     // Effective base'leri compute (off-chain doğrulama; kontrat zaten kendi okur)
     const effColl = effectiveCollateral(ctx.collateralRaw, ctx.cFactorBps);
