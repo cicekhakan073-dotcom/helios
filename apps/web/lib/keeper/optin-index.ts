@@ -99,8 +99,15 @@ export async function acquireRebalanceLock(
       ex: LOCK_TTL_SEC,
     });
     return res ? { ok: true, lockId } : { ok: false };
-  } catch {
-    return { ok: false };
+  } catch (err) {
+    // Upstash erişilemedi/placeholder → lock'u BLOKLAYICI sayma; aksi halde keeper
+    // hiç rebalance edemez (canlı doğrulandı 2026-06-03, rate-limit ile aynı sınıf).
+    // Tek-instance dev/demo'da lock-free ilerle; kontrat guard'ları nihai koruma.
+    console.warn(
+      "[helios/keeper] lock acquire başarısız (Upstash erişilemez) — lock-free ilerleniyor:",
+      err instanceof Error ? err.message : String(err),
+    );
+    return { ok: true, lockId: `fallback-${user}` };
   }
 }
 
