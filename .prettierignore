@@ -11,6 +11,9 @@ pnpm-lock.yaml
 **/next-env.d.ts
 **/*.d.ts.map
 **/*.js.map
+# Soroban test snapshot'ları — `cargo test` üretir (expand JSON); prettier compact'lerse
+# her test çalıştırmasında re-diff (ping-pong). Üreticinin formatını koru.
+**/test_snapshots/**
 
 # Markdown — token tabloları, prettier kırabilir
 ROADMAP.md
