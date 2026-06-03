@@ -144,9 +144,9 @@ export const chartPalette = {
 
   /** Monte Carlo P10/P50/P90 fan band'ı (PROMPT 27). */
   fanBand: {
-    p10: "rgba(94, 234, 212, 0.18)",
+    p10: "rgba(227, 165, 46, 0.18)",
     p50: colors.aurora.teal,
-    p90: "rgba(94, 234, 212, 0.18)",
+    p90: "rgba(227, 165, 46, 0.18)",
   },
 
   /** Likidasyon eşik çizgisi (HF=1, dashed). */
