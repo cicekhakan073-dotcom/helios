@@ -48,8 +48,7 @@ const TESTNET_PASSPHRASE = "Test SDF Network ; September 2015";
 
 function fromEnv(key: string, fallback: string): string {
   // Next.js: NEXT_PUBLIC_* prefix client'a açık; PROMPT 15 .env.local üretir.
-  const v =
-    typeof process !== "undefined" && process.env ? process.env[key] : undefined;
+  const v = typeof process !== "undefined" && process.env ? process.env[key] : undefined;
   return v ?? fallback;
 }
 
@@ -58,7 +57,7 @@ const FALLBACK: HeliosAddresses = {
   network: { id: "testnet", passphrase: TESTNET_PASSPHRASE },
   helios: {
     strategyRouter: "CBOQUIOAXTKAG7WFEPJRZMRKPOBJRNQCAKBXMK5PRIMMPB5QT3TMGDUR",
-    keeper: "CDWMZI7CCSUZ6SNTACYGUHDVDGY4J4BZDKVZ4HTRRSGKBBIMXBE4DUMU",
+    keeper: "CAKMJQ4BN24N5YDE7NGU23HXKAG26KJHOZSSMW6C7TXJFFOGZVRGNAM7",
   },
   blend: {
     pool: "CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF",
@@ -72,7 +71,7 @@ const FALLBACK: HeliosAddresses = {
     externalCexDex: "CCYOZJCOPG34LLQQ7N24YXBM7LL62R7ONMZ3G6WZAAYPB5OYKOMJRN63",
   },
   tokens: {
-    xlmSac:  "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    xlmSac: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
     usdcSac: "CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU",
     wbtcSac: "CAP5AMC2OHNVREO66DFIN6DHJMPOBAJ2KCDDIMFBR7WWJH5RZBFM3UEI",
     wethSac: "CAZAQB3D7KSLSNOSQKYD2V4JP5V2Y3B4RDJZRLBFCCIXDCTE3WHSY3UE",
@@ -96,13 +95,16 @@ export function getAddresses(): HeliosAddresses {
     },
     reflector: {
       stellarDex: fromEnv("NEXT_PUBLIC_REFLECTOR_STELLAR_DEX", FALLBACK.reflector.stellarDex),
-      externalCexDex: fromEnv("NEXT_PUBLIC_REFLECTOR_EXT_CEX_DEX", FALLBACK.reflector.externalCexDex),
+      externalCexDex: fromEnv(
+        "NEXT_PUBLIC_REFLECTOR_EXT_CEX_DEX",
+        FALLBACK.reflector.externalCexDex,
+      ),
     },
     tokens: {
-      xlmSac:  fromEnv("NEXT_PUBLIC_XLM_SAC",        FALLBACK.tokens.xlmSac),
-      usdcSac: fromEnv("NEXT_PUBLIC_MOCK_USDC_SAC",  FALLBACK.tokens.usdcSac),
-      wbtcSac: fromEnv("NEXT_PUBLIC_MOCK_WBTC_SAC",  FALLBACK.tokens.wbtcSac),
-      wethSac: fromEnv("NEXT_PUBLIC_MOCK_WETH_SAC",  FALLBACK.tokens.wethSac),
+      xlmSac: fromEnv("NEXT_PUBLIC_XLM_SAC", FALLBACK.tokens.xlmSac),
+      usdcSac: fromEnv("NEXT_PUBLIC_MOCK_USDC_SAC", FALLBACK.tokens.usdcSac),
+      wbtcSac: fromEnv("NEXT_PUBLIC_MOCK_WBTC_SAC", FALLBACK.tokens.wbtcSac),
+      wethSac: fromEnv("NEXT_PUBLIC_MOCK_WETH_SAC", FALLBACK.tokens.wethSac),
     },
     rpcUrl: fromEnv("NEXT_PUBLIC_SOROBAN_RPC_URL", FALLBACK.rpcUrl),
   };
@@ -112,10 +114,14 @@ export function getAddresses(): HeliosAddresses {
 export function sacAddressFor(assetId: AssetId): string {
   const a = getAddresses().tokens;
   switch (assetId) {
-    case "USDC": return a.usdcSac;
-    case "XLM":  return a.xlmSac;
-    case "wBTC": return a.wbtcSac;
-    case "wETH": return a.wethSac;
+    case "USDC":
+      return a.usdcSac;
+    case "XLM":
+      return a.xlmSac;
+    case "wBTC":
+      return a.wbtcSac;
+    case "wETH":
+      return a.wethSac;
   }
 }
 
@@ -133,9 +139,7 @@ export interface AssetMeta {
   sacAddressEnvKey: string;
   /** Reflector lastprice() çağrısında verilecek asset şekli (referans).
    *  HF için bu DEĞİL — getAddresses().blend.poolOracle kullanılır. */
-  reflector:
-    | { kind: "Stellar"; sacAddressEnvKey: string }
-    | { kind: "Other"; symbol: string };
+  reflector: { kind: "Stellar"; sacAddressEnvKey: string } | { kind: "Other"; symbol: string };
   /** Hangi Reflector feed'i referans olarak kullanır. */
   feed: "stellarDex" | "externalCexDex";
 }

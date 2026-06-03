@@ -162,8 +162,8 @@ fn get_reserve_kurulu_reserve_i_okuyor() {
     let f = setup();
     let r = checked_get_reserve(&f.env, &f.pool, &f.usdc).unwrap();
     assert_eq!(r.asset, f.usdc);
-    assert_eq!(r.config.c_factor, 8500); // default_reserve_config
-    assert_eq!(r.config.l_factor, 8000);
+    assert_eq!(r.config.c_factor, 8_500_000); // default_reserve_config (7-dec scalar)
+    assert_eq!(r.config.l_factor, 8_000_000);
     assert!(r.config.enabled);
 }
 
@@ -215,7 +215,7 @@ fn collect_hf_readout_pozisyon_ve_reserve_toplar() {
     assert_eq!(readout.positions.liabilities.get(0).unwrap(), 3_000);
     assert_eq!(readout.reserves.len(), 1);
     assert_eq!(readout.reserves.get(0).unwrap().asset, f.usdc);
-    assert_eq!(readout.reserves.get(0).unwrap().config.c_factor, 8500);
+    assert_eq!(readout.reserves.get(0).unwrap().config.c_factor, 8_500_000);
 }
 
 #[test]

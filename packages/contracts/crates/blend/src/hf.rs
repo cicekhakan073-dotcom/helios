@@ -108,14 +108,18 @@ pub fn compute_hf_bps(
             .get(reserve.config.index)
             .unwrap_or(0);
 
+        // Blend reserve c_factor/l_factor 7-dec scalar (9_000_000 = 0.90);
+        // effective_* fn'leri BPS bekler (≤10_000). /1000 ile 7-dec → bps
+        // (SDK client.ts ile birebir: cfg.c_factor / 1000). Aksi halde
+        // 9_000_000 > 10_000 → InvalidParams (#3) — canlı keeper testinde doğrulandı 2026-06-03.
         if raw_coll > 0 {
-            let eff = effective_collateral(raw_coll, reserve.config.c_factor)?;
+            let eff = effective_collateral(raw_coll, reserve.config.c_factor / 1000)?;
             total_coll_base = total_coll_base
                 .checked_add(eff.checked_mul(price).ok_or(HeliosError::HfOverflow)?)
                 .ok_or(HeliosError::HfOverflow)?;
         }
         if raw_liab > 0 {
-            let eff = effective_liability(raw_liab, reserve.config.l_factor)?;
+            let eff = effective_liability(raw_liab, reserve.config.l_factor / 1000)?;
             total_liab_base = total_liab_base
                 .checked_add(eff.checked_mul(price).ok_or(HeliosError::HfOverflow)?)
                 .ok_or(HeliosError::HfOverflow)?;

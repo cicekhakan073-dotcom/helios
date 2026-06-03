@@ -202,8 +202,11 @@ pub fn default_reserve_config() -> ReserveConfig {
     ReserveConfig {
         index: 0,
         decimals: 7,
-        c_factor: 8500, // 0.85
-        l_factor: 8000, // 0.80
+        // 7-dec scalar (gerçek Blend get_reserve böyle döndürür: 9_000_000 = 0.90).
+        // compute_hf_bps /1000 ile bps'e çevirir. Mock'u gerçeğe sadık tut (önceki
+        // bps değerleri unfaithful'dı → keeper #3 canlıda ortaya çıktı 2026-06-03).
+        c_factor: 8_500_000, // 0.85
+        l_factor: 8_000_000, // 0.80
         util: 0,
         max_util: 9_500,
         r_base: 100,
