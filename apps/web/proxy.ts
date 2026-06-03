@@ -17,13 +17,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/config";
 import { verifySession } from "@/lib/auth/session";
 
-/** Oturum şartı koşulan path prefix'leri. */
-const PROTECTED_PREFIXES = [
-  "/dashboard",
-  "/api/copilot",
-  "/api/keeper/cron",
-  "/api/leaderboard/me",
-];
+/** Oturum şartı koşulan path prefix'leri.
+ *
+ *  NOT (PROMPT 29): `/api/keeper/cron` BURADA YOK. Vercel cron tetiği
+ *  Bearer secret (Authorization: Bearer <CRON_SECRET>) ile gelir, SEP-10
+ *  cookie göndermez. Bu yüzden cron route kendi Bearer guard'ını
+ *  uygular (lib/keeper/cron/route.ts). `/api/keeper/optin-index` ve
+ *  `/api/keeper/log` SEP-10 ile korunur ama route içinden — proxy gate
+ *  cookie yok diye redirect'lemesin diye PROTECTED'de değil. */
+const PROTECTED_PREFIXES = ["/dashboard", "/api/copilot", "/api/leaderboard/me"];
 
 function isProtected(pathname: string): boolean {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));

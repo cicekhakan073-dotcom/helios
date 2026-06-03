@@ -46,6 +46,7 @@ import { CopilotLauncher } from "../../_components/copilot/CopilotLauncher";
 import { formatPrincipal } from "../../open/_state/wizard-store";
 
 import { HfProjectionChart } from "./HfProjectionChart";
+import { LastRebalanceStrip } from "./LastRebalanceStrip";
 import { RiskRadar } from "./RiskRadar";
 
 const REFRESH_TAG_PREFIX = "helios-position-";
@@ -158,6 +159,7 @@ export function DashboardLive({ address }: Props) {
         hf={hfComputed}
       />
       <OptInPanel address={address} />
+      <LastRebalanceStrip />
       <CopilotLauncher
         context={{
           page: "dashboard",
@@ -504,6 +506,15 @@ function OptInPanel({ address }: { address: string }) {
     onSuccess: (res) => {
       setResult(res);
       void queryClient.invalidateQueries({ queryKey: ["helios", "contract", "opt-in"] });
+      // PROMPT 29: off-chain keeper cron taraması için KV indeksine ekle.
+      // Kontrat authoritative; indeks sadece "kimi taramalı" ipucu.
+      void fetch("/api/keeper/optin-index", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "add" }),
+      }).catch(() => {
+        /* sessiz — KV yoksa cron env list'ten okur */
+      });
     },
     onError: (err) => pushAppError(normalizeError(err)),
   });
