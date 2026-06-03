@@ -42,3 +42,6 @@ next-env.d.ts
 # misc
 .cache/
 tmp/
+
+# Build cache (per-machine)
+**/*.tsbuildinfo
