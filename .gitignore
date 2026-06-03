@@ -45,3 +45,4 @@ tmp/
 
 # Build cache (per-machine)
 **/*.tsbuildinfo
+.vercel
