@@ -36,20 +36,20 @@ export function riskBand(hf: number): HfBand {
 
 export const colors = {
   space: {
-    950: "#03040A",
-    900: "#05060D",
-    800: "#0B0E1C",
-    700: "#11162B",
-    600: "#1A2040",
-    500: "#252C55",
+    950: "#0C0205",
+    900: "#12070A",
+    800: "#200E13",
+    700: "#2C161C",
+    600: "#3F222A",
+    500: "#53323C",
   },
   aurora: {
-    amber: "#FBBF24",
-    amberGlow: "#FCD34D",
-    mauve: "#B583FF",
-    mauveDeep: "#7C3AED",
-    teal: "#5EEAD4",
-    tealDeep: "#14B8A6",
+    amber: "#E3A52E",
+    amberGlow: "#F2C955",
+    mauve: "#DA1F44",
+    mauveDeep: "#AD0F2E",
+    teal: "#D6B463",
+    tealDeep: "#BE8F22",
   },
   semantic: {
     success: "#22C55E",
@@ -68,22 +68,22 @@ export const colors = {
     liquidatable: "#B91C1C",
   },
   text: {
-    high: "#F8FAFC",
-    medium: "#CBD5E1",
-    low: "#94A3B8",
-    disabled: "#64748B",
-    onAurora: "#0B0E1C",
-    link: "#60A5FA",
-    linkHover: "#5EEAD4",
+    high: "#FBF8F2",
+    medium: "#DED7CA",
+    low: "#B0A695",
+    disabled: "#8A7F6E",
+    onAurora: "#1A060B",
+    link: "#ECC050",
+    linkHover: "#E64E68",
   },
   border: {
-    subtle: "rgba(255,255,255,0.06)",
-    default: "rgba(255,255,255,0.10)",
-    strong: "rgba(255,255,255,0.20)",
+    subtle: "rgba(255,246,235,0.07)",
+    default: "rgba(255,246,235,0.12)",
+    strong: "rgba(255,238,215,0.22)",
   },
   overlay: {
-    modal: "rgba(3,4,10,0.72)",
-    hover: "rgba(255,255,255,0.04)",
+    modal: "rgba(12,2,5,0.74)",
+    hover: "rgba(255,238,215,0.05)",
   },
 } as const;
 
@@ -135,11 +135,11 @@ export const chartPalette = {
 
   /** RiskGauge gradient stop'ları (HF 0..2 ölçeği üstünde). */
   riskGaugeStops: [
-    { offset: 0.00, color: colors.hf.liquidatable },
-    { offset: 0.50, color: colors.hf.danger },
-    { offset: 0.60, color: colors.hf.caution },
+    { offset: 0.0, color: colors.hf.liquidatable },
+    { offset: 0.5, color: colors.hf.danger },
+    { offset: 0.6, color: colors.hf.caution },
     { offset: 0.75, color: colors.hf.healthy },
-    { offset: 1.00, color: colors.hf.healthy },
+    { offset: 1.0, color: colors.hf.healthy },
   ],
 
   /** Monte Carlo P10/P50/P90 fan band'ı (PROMPT 27). */
@@ -170,18 +170,18 @@ export const motion = {
   duration: {
     instant: 0.08,
     fast: 0.12,
-    base: 0.20,
+    base: 0.2,
     slow: 0.36,
-    slower: 0.60,
+    slower: 0.6,
     ambient: 18,
   },
 
   /** Easing — Framer Motion `ease` array (4-element cubic-bezier). */
   ease: {
-    standard:   [0.4, 0, 0.2, 1] as [number, number, number, number],
-    enter:      [0, 0, 0.2, 1] as [number, number, number, number],
-    exit:       [0.4, 0, 1, 1] as [number, number, number, number],
-    emphasis:   [0.2, 0, 0, 1] as [number, number, number, number],
+    standard: [0.4, 0, 0.2, 1] as [number, number, number, number],
+    enter: [0, 0, 0.2, 1] as [number, number, number, number],
+    exit: [0.4, 0, 1, 1] as [number, number, number, number],
+    emphasis: [0.2, 0, 0, 1] as [number, number, number, number],
     springSoft: [0.34, 1.36, 0.64, 1] as [number, number, number, number],
   },
 
@@ -203,7 +203,7 @@ export const ORACLE_STALENESS_WARN_MS = 5 * 60 * 1000;
 export const ORACLE_STALENESS_BLOCK_MS = 10 * 60 * 1000;
 
 /** Sanity bound: |lastprice − TWAP(N)| / TWAP > eşik → revert. */
-export const ORACLE_PRICE_DEVIATION_LIMIT = 0.30;
+export const ORACLE_PRICE_DEVIATION_LIMIT = 0.3;
 
 /* =================================================================
    SPACING & RADIUS — eşlenen Tailwind v4 değerleri (referans)

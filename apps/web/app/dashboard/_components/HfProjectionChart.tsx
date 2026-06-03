@@ -138,7 +138,7 @@ export function HfProjectionChart({ collateralBase, liabilityBase, shocksPct }: 
             <Line
               type="monotone"
               dataKey="hf"
-              stroke="#4dd0a7"
+              stroke="#E3A52E"
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}

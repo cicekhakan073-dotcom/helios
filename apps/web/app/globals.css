@@ -12,22 +12,21 @@
    @theme — Tailwind v4 namespace token'ları (utility generation)
    ================================================================= */
 @theme {
+  /* --- COLORS · Space (background — kraliyet burgundy, dark-first) --- */
+  --color-space-950: hsl(347 55% 3%);
+  --color-space-900: hsl(347 42% 5%);
+  --color-space-800: hsl(347 38% 9%);
+  --color-space-700: hsl(347 33% 13%);
+  --color-space-600: hsl(347 29% 19%);
+  --color-space-500: hsl(347 25% 26%);
 
-  /* --- COLORS · Space (background scale, dark-first) ------------- */
-  --color-space-950: hsl(231 53% 2%);
-  --color-space-900: hsl(231 45% 4%);
-  --color-space-800: hsl(229 44% 8%);
-  --color-space-700: hsl(229 43% 12%);
-  --color-space-600: hsl(230 42% 18%);
-  --color-space-500: hsl(231 38% 25%);
-
-  /* --- COLORS · Aurora (brand accents, NOT semantic) ------------- */
-  --color-aurora-amber: hsl(43 96% 56%);
-  --color-aurora-amber-glow: hsl(45 96% 64%);
-  --color-aurora-mauve: hsl(266 100% 76%);
-  --color-aurora-mauve-deep: hsl(263 84% 58%);
-  --color-aurora-teal: hsl(168 76% 64%);
-  --color-aurora-teal-deep: hsl(173 80% 40%);
+  /* --- COLORS · Aurora (marka — KRALİYET KIRMIZISI + ALTIN) ------ */
+  --color-aurora-amber: hsl(44 80% 55%); /* altın (primary accent) */
+  --color-aurora-amber-glow: hsl(46 88% 66%);
+  --color-aurora-mauve: hsl(348 78% 48%); /* kraliyet kırmızısı */
+  --color-aurora-mauve-deep: hsl(348 84% 37%);
+  --color-aurora-teal: hsl(42 62% 60%); /* şampanya altını (ikincil) */
+  --color-aurora-teal-deep: hsl(43 70% 44%);
 
   /* --- COLORS · Semantic (status) -------------------------------- */
   --color-success: hsl(142 71% 45%);
@@ -42,26 +41,26 @@
   /* --- COLORS · Health Factor (durum — design-system §1.4) ------- */
   /* Eşikler tek kaynak: HF_HEALTHY_MIN=1.5, HF_CAUTION_MIN=1.2, HF_LIQUIDATION=1.0
      mirror: tokens.ts + Rust shared crate (PROMPT 13). Drift testi PROMPT 18. */
-  --color-hf-healthy: hsl(142 71% 45%);       /* = success */
-  --color-hf-caution: hsl(38 92% 50%);        /* = warn */
-  --color-hf-danger: hsl(0 84% 60%);          /* = danger */
-  --color-hf-liquidatable: hsl(0 73% 41%);    /* #B91C1C */
+  --color-hf-healthy: hsl(142 71% 45%); /* = success */
+  --color-hf-caution: hsl(38 92% 50%); /* = warn */
+  --color-hf-danger: hsl(0 84% 60%); /* = danger */
+  --color-hf-liquidatable: hsl(0 73% 41%); /* #B91C1C */
 
   /* --- COLORS · Text (kontrast hiyerarşisi) --------------------- */
-  --color-text-high: hsl(210 40% 98%);
-  --color-text-medium: hsl(213 27% 84%);
-  --color-text-low: hsl(215 20% 65%);
-  --color-text-disabled: hsl(215 16% 47%);
-  --color-text-on-aurora: hsl(229 44% 8%);
-  --color-text-link: hsl(213 94% 68%);
-  --color-text-link-hover: hsl(168 76% 64%);
+  --color-text-high: hsl(40 30% 97%);
+  --color-text-medium: hsl(38 18% 85%);
+  --color-text-low: hsl(36 14% 66%);
+  --color-text-disabled: hsl(35 12% 48%);
+  --color-text-on-aurora: hsl(347 45% 7%); /* altın/kırmızı üstünde koyu metin */
+  --color-text-link: hsl(44 80% 62%); /* altın link */
+  --color-text-link-hover: hsl(348 78% 60%); /* hover'da kırmızı */
 
-  /* --- COLORS · Border / Overlay -------------------------------- */
-  --color-border-subtle: rgba(255, 255, 255, 0.06);
-  --color-border-default: rgba(255, 255, 255, 0.10);
-  --color-border-strong: rgba(255, 255, 255, 0.20);
-  --color-overlay-modal: rgba(3, 4, 10, 0.72);
-  --color-overlay-hover: rgba(255, 255, 255, 0.04);
+  /* --- COLORS · Border / Overlay (warm-tinted) ------------------- */
+  --color-border-subtle: rgba(255, 246, 235, 0.07);
+  --color-border-default: rgba(255, 246, 235, 0.12);
+  --color-border-strong: rgba(255, 238, 215, 0.22);
+  --color-overlay-modal: rgba(12, 2, 5, 0.74);
+  --color-overlay-hover: rgba(255, 238, 215, 0.05);
 
   /* --- FONT family ---------------------------------------------- */
   --font-sans: "Geist Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -140,14 +139,14 @@
 
   /* --- SHADOW / Elevation -------------------------------------- */
   --shadow-elev-0: none;
-  --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-elev-2: 0 4px 12px rgba(0, 0, 0, 0.45);
   --shadow-elev-3: 0 10px 30px rgba(0, 0, 0, 0.55);
   --shadow-elev-4: 0 24px 60px rgba(0, 0, 0, 0.65);
-  --shadow-glow-amber: 0 0 32px rgba(251, 191, 36, 0.32);
-  --shadow-glow-mauve: 0 0 28px rgba(181, 131, 255, 0.28);
-  --shadow-glow-teal: 0 0 24px rgba(94, 234, 212, 0.30);
-  --shadow-glow-danger: 0 0 24px rgba(239, 68, 68, 0.36);
+  --shadow-glow-amber: 0 0 32px rgba(224, 168, 46, 0.34); /* altın */
+  --shadow-glow-mauve: 0 0 28px rgba(218, 31, 69, 0.3); /* kraliyet kırmızısı */
+  --shadow-glow-teal: 0 0 24px rgba(212, 180, 104, 0.28); /* şampanya */
+  --shadow-glow-danger: 0 0 24px rgba(239, 68, 68, 0.36); /* DEĞİŞMEZ (status) */
 
   /* --- INSET SHADOW (GlassPanel inner highlight) --------------- */
   --inset-shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.06);
@@ -170,14 +169,12 @@
   --animate-pulse-danger: pulse-danger 1500ms ease-in-out infinite;
   --animate-tx-burst: tx-burst 360ms var(--ease-emphasis) 1;
   --animate-count-up: count-up 200ms var(--ease-emphasis) 1;
-
 }
 
 /* =================================================================
    :root — Composite / derived tokens (utility üretmez, custom prop)
    ================================================================= */
 :root {
-
   /* --- Aurora marka gradient'i (3-stop) ------------------------ */
   --gradient-aurora: linear-gradient(
     135deg,
@@ -187,8 +184,8 @@
   );
 
   /* --- GlassPanel kompozit ------------------------------------- */
-  --glass-bg: rgba(17, 22, 43, 0.55);
-  --glass-bg-fallback: rgba(11, 14, 28, 0.92);
+  --glass-bg: rgba(40, 14, 21, 0.55);
+  --glass-bg-fallback: rgba(24, 9, 13, 0.92);
   --glass-backdrop: blur(var(--blur-glass)) saturate(140%);
   --glass-border: 1px solid rgba(255, 255, 255, 0.08);
 
@@ -208,12 +205,11 @@
   /* --- HF eşik değerleri (drift-prevented; mirror: tokens.ts + Rust shared) */
   --hf-healthy-min: 1.5;
   --hf-caution-min: 1.2;
-  --hf-liquidation: 1.0;
+  --hf-liquidation: 1;
 
   /* --- Oracle freshness eşikleri (AUDIT §1.6) ------------------ */
-  --oracle-staleness-warn-ms: 300000;   /* 5 dk → "stale" rozet */
-  --oracle-staleness-block-ms: 600000;  /* 10 dk → UI guard disabled */
-
+  --oracle-staleness-warn-ms: 300000; /* 5 dk → "stale" rozet */
+  --oracle-staleness-block-ms: 600000; /* 10 dk → UI guard disabled */
 }
 
 /* =================================================================
@@ -289,7 +285,7 @@ body {
 }
 
 .glass-panel--danger {
-  border-color: rgba(239, 68, 68, 0.30);
+  border-color: rgba(239, 68, 68, 0.3);
   box-shadow: var(--shadow-elev-2), var(--shadow-glow-danger);
 }
 
@@ -352,11 +348,7 @@ body {
 .aurora-bg__vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    ellipse at center,
-    transparent 0%,
-    var(--color-space-950) 100%
-  );
+  background: radial-gradient(ellipse at center, transparent 0%, var(--color-space-950) 100%);
   opacity: 0.6;
 }
 
@@ -386,45 +378,93 @@ body {
    ================================================================= */
 
 @keyframes aurora-amber {
-  0%   { transform: translate3d(-15%, -10%, 0) scale(1); }
-  33%  { transform: translate3d( 25%,  10%, 0) scale(1.10); }
-  66%  { transform: translate3d(-10%,  20%, 0) scale(0.95); }
-  100% { transform: translate3d(-15%, -10%, 0) scale(1); }
+  0% {
+    transform: translate3d(-15%, -10%, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(25%, 10%, 0) scale(1.1);
+  }
+  66% {
+    transform: translate3d(-10%, 20%, 0) scale(0.95);
+  }
+  100% {
+    transform: translate3d(-15%, -10%, 0) scale(1);
+  }
 }
 
 @keyframes aurora-mauve {
-  0%   { transform: translate3d( 20%, -15%, 0) scale(1); }
-  33%  { transform: translate3d(-15%,   5%, 0) scale(1.05); }
-  66%  { transform: translate3d( 25%,  15%, 0) scale(1.00); }
-  100% { transform: translate3d( 20%, -15%, 0) scale(1); }
+  0% {
+    transform: translate3d(20%, -15%, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(-15%, 5%, 0) scale(1.05);
+  }
+  66% {
+    transform: translate3d(25%, 15%, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(20%, -15%, 0) scale(1);
+  }
 }
 
 @keyframes aurora-teal {
-  0%   { transform: translate3d(  0%,  20%, 0) scale(1); }
-  33%  { transform: translate3d( 20%, -15%, 0) scale(1.10); }
-  66%  { transform: translate3d(-20%,  10%, 0) scale(0.95); }
-  100% { transform: translate3d(  0%,  20%, 0) scale(1); }
+  0% {
+    transform: translate3d(0%, 20%, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(20%, -15%, 0) scale(1.1);
+  }
+  66% {
+    transform: translate3d(-20%, 10%, 0) scale(0.95);
+  }
+  100% {
+    transform: translate3d(0%, 20%, 0) scale(1);
+  }
 }
 
 @keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes pulse-danger {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.36); }
-  50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.36);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
 }
 
 @keyframes tx-burst {
-  0%   { transform: scale(0.85); opacity: 0; }
-  60%  { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1.00); opacity: 1; }
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes count-up {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* =================================================================

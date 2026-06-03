@@ -220,7 +220,7 @@ export function RiskRadar({ collateralBase, liabilityBase, spotPriceI128 }: Prop
               type="monotone"
               dataKey="hfBand"
               stroke="none"
-              fill="#4dd0a7"
+              fill="#E3A52E"
               fillOpacity={0.18}
               isAnimationActive={false}
               name="P10–P90"
@@ -228,7 +228,7 @@ export function RiskRadar({ collateralBase, liabilityBase, spotPriceI128 }: Prop
             <Line
               type="monotone"
               dataKey="hfP50"
-              stroke="#4dd0a7"
+              stroke="#E3A52E"
               strokeWidth={2}
               dot={false}
               isAnimationActive={false}

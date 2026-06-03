@@ -435,7 +435,7 @@ function EquityFanChart({ output }: { output: MonteCarloOutput | null }) {
               y={(d) => y(d.equityP90)}
               y0={(d) => y(d.equityP10)}
               yScale={y}
-              fill="#4dd0a7"
+              fill="#E3A52E"
               fillOpacity={0.18}
               stroke="none"
             />
@@ -443,7 +443,7 @@ function EquityFanChart({ output }: { output: MonteCarloOutput | null }) {
               data={fan}
               x={(d) => x(d.day)}
               y={(d) => y(d.equityP50)}
-              stroke="#4dd0a7"
+              stroke="#E3A52E"
               strokeWidth={2}
             />
             <AxisLeft
@@ -511,7 +511,7 @@ function HfBandChart({ output }: { output: MonteCarloOutput | null }) {
               y={(d) => y(d.hfP90)}
               y0={(d) => y(d.hfP10)}
               yScale={y}
-              fill="#4dd0a7"
+              fill="#E3A52E"
               fillOpacity={0.18}
               stroke="none"
             />
@@ -519,7 +519,7 @@ function HfBandChart({ output }: { output: MonteCarloOutput | null }) {
               data={fan}
               x={(d) => x(d.day)}
               y={(d) => y(d.hfP50)}
-              stroke="#4dd0a7"
+              stroke="#E3A52E"
               strokeWidth={2}
             />
             <Line
@@ -657,7 +657,7 @@ function LeverageTradeoff({
             const liq = r.liqProb ?? 0;
             const barY = y(liq);
             const barH = TIH - barY;
-            const color = liq > 0.25 ? "#ff5577" : liq > 0.05 ? "#f6c34d" : "#4dd0a7";
+            const color = liq > 0.25 ? "#ff5577" : liq > 0.05 ? "#f6c34d" : "#E3A52E";
             return (
               <Group key={r.lev}>
                 <Bar
