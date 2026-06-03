@@ -82,7 +82,7 @@ demo-kalite paketleme.
 | --------------------- | ---------------------------------------------------------- |
 | Helios router         | `CBOQUIOAXTKAG7WFEPJRZMRKPOBJRNQCAKBXMK5PRIMMPB5QT3TMGDUR` |
 | Helios flash_receiver | `CDN3P4IIKCUMWRVMECGOKGFF5Q2DRQBLE6VCPBWMJPVR2HN6KXCLJ3KL` |
-| Helios keeper         | `CAKMJQ4BN24N5YDE7NGU23HXKAG26KJHOZSSMW6C7TXJFFOGZVRGNAM7` |
+| Helios keeper         | `CBEF3ZJZ4OAHTZVYBN73UMKDMXIX5ETILYKTEWJUWRCQDIWRFPM3RTCQ` |
 | Blend pool            | `CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF` |
 | Blend pool oracle     | `CAZOKR2Y5E2OSWSIBRVZMJ47RUTQPIGVWSAQ2UISGAVC46XKPGDG5PKI` |
 | XLM SAC (native)      | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` |
@@ -120,6 +120,8 @@ giderek pool ve router üzerinden Stellar Expert'te tx'leri görebilirsin:
 
 - Router: <https://stellar.expert/explorer/testnet/contract/CBOQUIOAXTKAG7WFEPJRZMRKPOBJRNQCAKBXMK5PRIMMPB5QT3TMGDUR>
 - Pool: <https://stellar.expert/explorer/testnet/contract/CCEBVDYM32YNYCVNRXQKDFFPISJJCV557CDZEIRBEE4NCV4KHPQ44HGF>
+- Keeper (auto-rebalance): <https://stellar.expert/explorer/testnet/contract/CBEF3ZJZ4OAHTZVYBN73UMKDMXIX5ETILYKTEWJUWRCQDIWRFPM3RTCQ>
+- Rebalance tx: <https://stellar.expert/explorer/testnet/tx/50a9ea7695091563cc4d6a487cb1bf41112dfd5e4646f055bd17fa79fb7c4517>
 
 Deployer hesabında (PROMPT 23-FIX) gerçek 2× XLM pozisyonu açıldı + kapatıldı; o
 adresin tx'leri (`GAQUEFDOXD…`) Stellar Expert'te listelenir.
@@ -139,13 +141,18 @@ manuel yönlendirme (Soroswap/StellarTerm/Discord) ve `changeTrust` notu göster
 Demo akışı **XLM** üzerinden uçtan uca çalışır. (PROMPT 24 fix + ROADMAP-CHANGELOG
 "Faucet kısıtı" kaydı.)
 
-### 2. Keeper otomatik rebalance — uçtan uca tamam DEĞİL
+### 2. Keeper otomatik rebalance — ✅ CANLI ÇALIŞIYOR (single-asset)
 
-- ✅ Off-chain HF taraması doğru (`computeUserHfBps` underlying).
-- ✅ HF<trigger durumunda **push bildirimi gönderilir** (rebalance kararından bağımsız).
-- ✅ `compute_hf_bps` kontratta `c_factor/l_factor 7-dec→bps` fix uygulandı (`#3 InvalidParams` giderildi).
-- ⏳ Same-asset MVP'de tx'in deleverage miktarları (underlying) + close-buffer rework AÇIK; canlı keeper tx'i deneme aşamasında. (Mimari sağlam: `flash_receiver` re-entry fix, kontrat guard'ları, KV lock var; eksik olan tek şey `debt_amount`/`collateral_amount` ölçek sıkılaştırması.)
-- Yani **otomatik rebalance demo'da tx atmaz**; HF-uyarı pushları gelir. Bu jüriye açıkça anlatılır.
+- ✅ Off-chain HF taraması (`computeUserHfBps` underlying) + **on-chain HF guard** (`compute_hf_bps`,
+  `b_rate`/`d_rate` ile underlying — rate scalar 1e12) artık TUTARLI.
+- ✅ HF<trigger → push bildirimi **ve** `keeper.rebalance` tx'i (deleverage).
+- ✅ **CANLI KANIT (2026-06-03):** cron HF 1.61 < trigger 1.70 → rebalance tx
+  `50a9ea7695091563cc4d6a487cb1bf41112dfd5e4646f055bd17fa79fb7c4517` → pozisyon deleverage
+  (collateral/debt b/d-token azaldı) → HF **1.61→1.85** → 2. cron **NoActionNeeded** (güvende durdu).
+  Doğru davranış: riskte tetikler, güvene deleverage eder, güvendeyken durur.
+- Çözülen bug zinciri: `#3` (c_factor 7-dec→bps), `#51`/`#52` (HF + cap ham-token→underlying).
+- ⏳ Production-ready için kalan: çoklu-reserve + interest-accrual edge case'leri için entegrasyon
+  testi. Mimari + tek-asset (XLM, demo asset'i) **canlı kanıtlı**.
 
 ### 3. Same-asset MVP — XLM-bound 2× cap
 
