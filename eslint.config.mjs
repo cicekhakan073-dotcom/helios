@@ -42,6 +42,9 @@ export default tseslint.config(
       // tarayıcı runtime'ı (DedicatedWorkerGlobalScope-ish). ESLint typed
       // lint'i atlasın.
       "apps/web/public/sw.js",
+      // PROMPT 34 — seed scripti standalone Node modülü; tsconfig'in projeSi
+      // dışında. ESLint typed lint'i atlasın.
+      "scripts/**",
     ],
   },
 
