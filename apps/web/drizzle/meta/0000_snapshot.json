@@ -1,12 +1,12 @@
 {
-  "id": "bd965d5c-ac6a-48e2-b0ed-c5c81a5cc25e",
+  "id": "2aede570-3a3a-4808-9188-8a0e88075c45",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.follows": {
+    "helios.follows": {
       "name": "follows",
-      "schema": "",
+      "schema": "helios",
       "columns": {
         "follower": {
           "name": "follower",
@@ -41,14 +41,14 @@
       "checkConstraints": {
         "no_self_follow": {
           "name": "no_self_follow",
-          "value": "\"follows\".\"follower\" <> \"follows\".\"followee\""
+          "value": "\"helios\".\"follows\".\"follower\" <> \"helios\".\"follows\".\"followee\""
         }
       },
       "isRLSEnabled": false
     },
-    "public.positions_snapshot": {
+    "helios.positions_snapshot": {
       "name": "positions_snapshot",
-      "schema": "",
+      "schema": "helios",
       "columns": {
         "id": {
           "name": "id",
@@ -109,9 +109,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.push_subscriptions": {
+    "helios.push_subscriptions": {
       "name": "push_subscriptions",
-      "schema": "",
+      "schema": "helios",
       "columns": {
         "endpoint": {
           "name": "endpoint",
@@ -159,9 +159,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.strategies": {
+    "helios.strategies": {
       "name": "strategies",
-      "schema": "",
+      "schema": "helios",
       "columns": {
         "id": {
           "name": "id",
@@ -222,9 +222,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.users": {
+    "helios.users": {
       "name": "users",
-      "schema": "",
+      "schema": "helios",
       "columns": {
         "account": {
           "name": "account",
@@ -263,7 +263,9 @@
     }
   },
   "enums": {},
-  "schemas": {},
+  "schemas": {
+    "helios": "helios"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},

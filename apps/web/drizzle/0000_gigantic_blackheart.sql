@@ -1,12 +1,14 @@
-CREATE TABLE "follows" (
+CREATE SCHEMA "helios";
+--> statement-breakpoint
+CREATE TABLE "helios"."follows" (
 	"follower" text NOT NULL,
 	"followee" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "follows_follower_followee_pk" PRIMARY KEY("follower","followee"),
-	CONSTRAINT "no_self_follow" CHECK ("follows"."follower" <> "follows"."followee")
+	CONSTRAINT "no_self_follow" CHECK ("helios"."follows"."follower" <> "helios"."follows"."followee")
 );
 --> statement-breakpoint
-CREATE TABLE "positions_snapshot" (
+CREATE TABLE "helios"."positions_snapshot" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"account" text NOT NULL,
 	"asset" text NOT NULL,
@@ -17,7 +19,7 @@ CREATE TABLE "positions_snapshot" (
 	"closed_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "push_subscriptions" (
+CREATE TABLE "helios"."push_subscriptions" (
 	"endpoint" text PRIMARY KEY NOT NULL,
 	"account" text NOT NULL,
 	"p256dh" text NOT NULL,
@@ -26,7 +28,7 @@ CREATE TABLE "push_subscriptions" (
 	"last_sent_at" timestamp with time zone
 );
 --> statement-breakpoint
-CREATE TABLE "strategies" (
+CREATE TABLE "helios"."strategies" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"account" text NOT NULL,
 	"asset" text NOT NULL,
@@ -37,7 +39,7 @@ CREATE TABLE "strategies" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "users" (
+CREATE TABLE "helios"."users" (
 	"account" text PRIMARY KEY NOT NULL,
 	"anon_handle" text NOT NULL,
 	"show_address" boolean DEFAULT false NOT NULL,

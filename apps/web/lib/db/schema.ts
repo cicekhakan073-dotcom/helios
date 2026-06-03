@@ -14,15 +14,22 @@ import {
   boolean,
   check,
   integer,
-  pgTable,
+  pgSchema,
   primaryKey,
   text,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
 
+/**
+ * Helios'a DEDİKE Postgres schema. DATABASE_URL başka uygulamayla paylaşılan bir
+ * DB'ye işaret etse bile (örn. public.users çakışması), Helios tabloları `helios.*`
+ * altında izole kalır. Migration `CREATE SCHEMA helios` + `helios.<tablo>` üretir.
+ */
+export const heliosSchema = pgSchema("helios");
+
 /** Anonim handle = "helios_" + hash(account).slice(0,8) gibi; UI'da gizler. */
-export const users = pgTable("users", {
+export const users = heliosSchema.table("users", {
   /** Stellar G… (56 char). */
   account: text("account").primaryKey(),
   anonHandle: text("anon_handle").notNull(),
@@ -35,7 +42,7 @@ export const users = pgTable("users", {
 /** Pozisyon AÇILDIĞINDA (open confirm success) snapshot — entry price'ın
  *  authoritative kaynağı. PnL bu satır + on-chain pozisyon + güncel oracle'dan
  *  TÜREVdir; tahmini · testnet. */
-export const positionsSnapshot = pgTable("positions_snapshot", {
+export const positionsSnapshot = heliosSchema.table("positions_snapshot", {
   id: uuid("id").defaultRandom().primaryKey(),
   account: text("account").notNull(),
   asset: text("asset").notNull(), // "XLM"|"USDC"|"wBTC"|"wETH"
@@ -51,7 +58,7 @@ export const positionsSnapshot = pgTable("positions_snapshot", {
 });
 
 /** Paylaşılan strateji parametreleri (Simulator → leaderboard). */
-export const strategies = pgTable("strategies", {
+export const strategies = heliosSchema.table("strategies", {
   id: uuid("id").defaultRandom().primaryKey(),
   account: text("account").notNull(),
   asset: text("asset").notNull(),
@@ -65,7 +72,7 @@ export const strategies = pgTable("strategies", {
 });
 
 /** Follow ilişkisi — kompozit PK; self-follow CHECK ile yasaklı. */
-export const follows = pgTable(
+export const follows = heliosSchema.table(
   "follows",
   {
     follower: text("follower").notNull(),
@@ -82,7 +89,7 @@ export const follows = pgTable(
 
 /** Web Push subscription (PROMPT 31). Bir account birden çok cihaz olabilir;
  *  endpoint PK (gerçek browser endpoint). lastSentAt → keeper scan spam guard. */
-export const pushSubscriptions = pgTable("push_subscriptions", {
+export const pushSubscriptions = heliosSchema.table("push_subscriptions", {
   endpoint: text("endpoint").primaryKey(),
   account: text("account").notNull(),
   p256dh: text("p256dh").notNull(),
