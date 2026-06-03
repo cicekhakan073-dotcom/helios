@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+**/dist
+coverage
+**/coverage
+target
+**/target
+**/*.wasm
+**/test_snapshots
+.git
+docs/audit
