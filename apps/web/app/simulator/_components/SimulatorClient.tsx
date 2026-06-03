@@ -187,6 +187,10 @@ function buildMcParams(scenario: SimulatorScenario): MonteCarloInput {
   return {
     collateralBase: effColl.toString(),
     liabilityBase: effLiab.toString(),
+    // Equity/getiri GERÇEK (haircut'suz) değerlerden hesaplanır — HF effective ister
+    // ama equity raw ister (yoksa getiri ~%30 eksik görünürdü, c/l=0.9 XLM).
+    rawCollateralBase: totalCollateralRaw.toString(),
+    rawLiabilityBase: borrowRaw.toString(),
     spotPriceI128: "0",
     horizonDays: scenario.horizonDays,
     paths: PATHS,

@@ -16,6 +16,14 @@ export interface MonteCarloInput {
   collateralBase: string;
   /** Effective liability (factored, base units — bigint string). */
   liabilityBase: string;
+  /**
+   * RAW (haircut'suz) collateral underlying — equity/getiri hesabı için.
+   * HF effective base ister ama equity GERÇEK değer ister. Verilmezse equity
+   * effective base'den hesaplanır (geriye dönük uyum — RiskRadar kırılmaz).
+   */
+  rawCollateralBase?: string;
+  /** RAW (haircut'suz) liability underlying — equity için (bkz. rawCollateralBase). */
+  rawLiabilityBase?: string;
   /** Spot fiyatı i128 (7-dec) string. UI etiketleri için. */
   spotPriceI128: string;
   /** Horizon: gün sayısı (örn. 30). */
@@ -115,9 +123,14 @@ export function simulate(
   const equityByDay: number[][] = Array.from({ length: days + 1 }, () => new Array<number>(paths));
   const firstLiqDay: Int32Array = new Int32Array(paths).fill(-1);
   // Base equity (priceΔ=0). Likide path için 0 doldurmak amacıyla referans.
-  const collateralNum = Number(collateral);
-  const liabilityNum = Number(liability);
-  const baseEquity = Math.max(0, collateralNum - liabilityNum);
+  // Equity GERÇEK (haircut'suz) değerlerden — varsa raw, yoksa effective fallback.
+  const eqCollateralNum = Number(
+    input.rawCollateralBase != null ? BigInt(input.rawCollateralBase) : collateral,
+  );
+  const eqLiabilityNum = Number(
+    input.rawLiabilityBase != null ? BigInt(input.rawLiabilityBase) : liability,
+  );
+  const baseEquity = Math.max(0, eqCollateralNum - eqLiabilityNum);
 
   for (let p = 0; p < paths; p++) {
     if (isCancelled?.()) return null;
@@ -148,8 +161,8 @@ export function simulate(
         liquidated = true;
         firstLiqDay[p] = d;
       }
-      // Equity: likide ise 0; değilse collateral*(1+delta) - debt.
-      const equity = liquidated ? 0 : Math.max(0, collateralNum * ratio - liabilityNum);
+      // Equity: likide ise 0; değilse raw collateral*(1+delta) - raw debt.
+      const equity = liquidated ? 0 : Math.max(0, eqCollateralNum * ratio - eqLiabilityNum);
       equityByDay[d]![p] = equity;
     }
   }
