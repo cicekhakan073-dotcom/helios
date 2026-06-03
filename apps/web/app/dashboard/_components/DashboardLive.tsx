@@ -46,6 +46,7 @@ import { CopilotLauncher } from "../../_components/copilot/CopilotLauncher";
 import { formatPrincipal } from "../../open/_state/wizard-store";
 
 import { HfProjectionChart } from "./HfProjectionChart";
+import { RiskRadar } from "./RiskRadar";
 
 const REFRESH_TAG_PREFIX = "helios-position-";
 
@@ -326,6 +327,12 @@ function PositionDetail({
       </div>
 
       <HfProjectionChart collateralBase={collateralBase} liabilityBase={liabilityBase} />
+
+      <RiskRadar
+        collateralBase={collateralBase}
+        liabilityBase={liabilityBase}
+        spotPriceI128={oraclePrice}
+      />
 
       <CloseFlow address={address} resolved={resolved} meta={meta} />
 
