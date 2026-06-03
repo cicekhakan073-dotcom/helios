@@ -46,7 +46,7 @@ pub mod testutils;
 pub use actions::{borrow_req, repay_req, supply_collateral_req, withdraw_collateral_req};
 pub use client::{checked_get_config, checked_get_positions, checked_get_reserve};
 pub use config::PoolSet;
-pub use hf::{collect_hf_readout, compute_hf_bps, HfReadout};
+pub use hf::{collect_hf_readout, compute_hf_bps, sum_underlying_debt, HfReadout, RATE_SCALAR};
 pub use types::{
     FlashLoan, PoolClient, PoolConfig, Positions, Request, RequestType, Reserve, ReserveConfig,
     ReserveData,

@@ -125,8 +125,11 @@ function computeDeleverage(
   if (deltaD <= 0n) return null;
   const cap = (debtUnderlying * BigInt(maxDeleverageBps)) / 10_000n;
   if (deltaD > cap) deltaD = cap;
-  // Buffer ile + ufak ekstra (Blend cap'ler kalan bakiyeye)
-  const debtClose = (deltaD * (10_000n + CLOSE_BUFFER_BPS)) / 10_000n;
+  // Buffer ile + ufak ekstra (Blend kalan bakiyeye cap'ler).
+  let debtClose = (deltaD * (10_000n + CLOSE_BUFFER_BPS)) / 10_000n;
+  // Kontrat cap'i (max_deleverage, UNDERLYING) AŞMA: buffer cap'i geçirebilir → #52.
+  // Final miktarı cap'e VE bakiyeye clamp'le (contract cap ≥ scan cap, interest payıyla).
+  if (debtClose > cap) debtClose = cap;
   // Same-asset: collateral_to_withdraw == debt_to_close (net çekiş 0 + bakiye delta'sı)
   const cappedDebt = debtClose > debtUnderlying ? debtUnderlying : debtClose;
   const cappedColl = cappedDebt > collateralUnderlying ? collateralUnderlying : cappedDebt;

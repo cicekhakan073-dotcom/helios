@@ -36,6 +36,40 @@ use soroban_sdk::{Address, Env, Vec};
 use crate::client::{checked_get_positions, checked_get_reserve};
 use crate::types::{Positions, Reserve};
 
+/// Blend b_rate / d_rate sabit-nokta scalar'ı = 1e12 (12-dec).
+/// Canlı doğrulandı 2026-06-03: b_rate=1_330_987_588_133 (≈1.331),
+/// d_rate=1_514_602_077_746 (≈1.515). underlying = raw_token × rate / RATE_SCALAR.
+pub const RATE_SCALAR: i128 = 1_000_000_000_000;
+
+/// b/d-token shareını underlying asset miktarına çevirir (raw × rate / 1e12).
+fn to_underlying(raw: i128, rate: i128) -> Result<i128, HeliosError> {
+    if raw == 0 {
+        return Ok(0);
+    }
+    Ok(raw
+        .checked_mul(rate)
+        .ok_or(HeliosError::HfOverflow)?
+        / RATE_SCALAR)
+}
+
+/// Kullanıcının toplam borcunu UNDERLYING cinsinden döndürür (keeper cap'i için —
+/// scan da underlying gönderir; ham d_token cap'i ile uyumsuzluk #52'ye yol açıyordu).
+pub fn sum_underlying_debt(readout: &HfReadout) -> Result<i128, HeliosError> {
+    let mut total: i128 = 0;
+    for i in 0..readout.reserves.len() {
+        let reserve = readout.reserves.get(i).ok_or(HeliosError::InvalidParams)?;
+        let raw = readout
+            .positions
+            .liabilities
+            .get(reserve.config.index)
+            .unwrap_or(0);
+        total = total
+            .checked_add(to_underlying(raw, reserve.data.d_rate)?)
+            .ok_or(HeliosError::HfOverflow)?;
+    }
+    Ok(total)
+}
+
 /// Helios HF okuması için **gerekli ham veriyi tek noktada toplar**.
 #[derive(Clone)]
 pub struct HfReadout {
@@ -108,18 +142,22 @@ pub fn compute_hf_bps(
             .get(reserve.config.index)
             .unwrap_or(0);
 
-        // Blend reserve c_factor/l_factor 7-dec scalar (9_000_000 = 0.90);
-        // effective_* fn'leri BPS bekler (≤10_000). /1000 ile 7-dec → bps
-        // (SDK client.ts ile birebir: cfg.c_factor / 1000). Aksi halde
-        // 9_000_000 > 10_000 → InvalidParams (#3) — canlı keeper testinde doğrulandı 2026-06-03.
-        if raw_coll > 0 {
-            let eff = effective_collateral(raw_coll, reserve.config.c_factor / 1000)?;
+        // b/d-token → UNDERLYING (Blend rate scalar 1e12; canlı doğrulandı 2026-06-03:
+        // b_rate=1.33e12, d_rate=1.51e12). HF underlying üzerinden hesaplanmalı ki SDK/scan
+        // ile TUTARLI olsun; aksi halde b_rate≠d_rate yüzünden on-chain HF şişer (#51).
+        let underlying_coll = to_underlying(raw_coll, reserve.data.b_rate)?;
+        let underlying_liab = to_underlying(raw_liab, reserve.data.d_rate)?;
+
+        // c_factor/l_factor 7-dec scalar (9_000_000 = 0.90); effective_* BPS bekler (≤10_000).
+        // /1000 ile 7-dec → bps (SDK client.ts ile birebir). Aksi halde #3 InvalidParams.
+        if underlying_coll > 0 {
+            let eff = effective_collateral(underlying_coll, reserve.config.c_factor / 1000)?;
             total_coll_base = total_coll_base
                 .checked_add(eff.checked_mul(price).ok_or(HeliosError::HfOverflow)?)
                 .ok_or(HeliosError::HfOverflow)?;
         }
-        if raw_liab > 0 {
-            let eff = effective_liability(raw_liab, reserve.config.l_factor / 1000)?;
+        if underlying_liab > 0 {
+            let eff = effective_liability(underlying_liab, reserve.config.l_factor / 1000)?;
             total_liab_base = total_liab_base
                 .checked_add(eff.checked_mul(price).ok_or(HeliosError::HfOverflow)?)
                 .ok_or(HeliosError::HfOverflow)?;

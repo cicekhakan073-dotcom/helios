@@ -221,9 +221,11 @@ pub fn default_reserve_config() -> ReserveConfig {
 
 pub fn default_reserve_data() -> ReserveData {
     ReserveData {
-        d_rate: 1_000_000_000,
-        b_rate: 1_000_000_000,
-        ir_mod: 1_000_000_000,
+        // Rate scalar 1e12 (gerçek Blend; canlı b_rate≈1.33e12). 1.0 = 1e12.
+        // Önceki 1e9 unfaithful'dı (to_underlying'i 1000× küçültürdü).
+        d_rate: 1_000_000_000_000,
+        b_rate: 1_000_000_000_000,
+        ir_mod: 1_000_000_000_000,
         b_supply: 0,
         d_supply: 0,
         backstop_credit: 0,

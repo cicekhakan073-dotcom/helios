@@ -27,7 +27,7 @@
 
 #![no_std]
 
-use blend::{collect_hf_readout, compute_hf_bps};
+use blend::{collect_hf_readout, compute_hf_bps, sum_underlying_debt};
 use shared::HeliosError;
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, Address, Env, IntoVal, Symbol, Val, Vec,
@@ -119,13 +119,6 @@ fn write_opt_in(env: &Env, user: &Address, opt: &OptIn) {
     );
 }
 
-fn sum_raw_debt(positions: &blend::Positions) -> i128 {
-    let mut sum: i128 = 0;
-    for (_idx, v) in positions.liabilities.iter() {
-        sum = sum.saturating_add(v);
-    }
-    sum
-}
 
 // ============================================================================
 // Contract
@@ -276,12 +269,13 @@ impl Keeper {
             return Err(HeliosError::NoActionNeeded);
         }
 
-        // Cap kontrolü
-        let raw_debt = sum_raw_debt(&readout.positions);
-        if raw_debt <= 0 {
+        // Cap kontrolü — UNDERLYING cinsinden (scan da underlying debt_amount gönderir;
+        // ham d_token cap'i ile uyumsuzluk #52 DeleverageCapExceeded'a yol açıyordu).
+        let underlying_debt = sum_underlying_debt(&readout)?;
+        if underlying_debt <= 0 {
             return Err(HeliosError::NoActionNeeded);
         }
-        let cap = (raw_debt * opt.max_deleverage_bps as i128) / 10_000;
+        let cap = (underlying_debt * opt.max_deleverage_bps as i128) / 10_000;
         if debt_amount > cap {
             return Err(HeliosError::DeleverageCapExceeded);
         }
