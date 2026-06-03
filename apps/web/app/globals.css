@@ -13,12 +13,12 @@
    ================================================================= */
 @theme {
   /* --- COLORS · Space (background — kraliyet burgundy, dark-first) --- */
-  --color-space-950: hsl(347 55% 3%);
-  --color-space-900: hsl(347 42% 5%);
-  --color-space-800: hsl(347 38% 9%);
-  --color-space-700: hsl(347 33% 13%);
-  --color-space-600: hsl(347 29% 19%);
-  --color-space-500: hsl(347 25% 26%);
+  --color-space-950: hsl(347 58% 2%);
+  --color-space-900: hsl(347 46% 3.5%);
+  --color-space-800: hsl(347 42% 6.5%);
+  --color-space-700: hsl(347 36% 10%);
+  --color-space-600: hsl(347 31% 15%);
+  --color-space-500: hsl(347 27% 21%);
 
   /* --- COLORS · Aurora (marka — KRALİYET KIRMIZISI + ALTIN) ------ */
   --color-aurora-amber: hsl(44 80% 55%); /* altın (primary accent) */
