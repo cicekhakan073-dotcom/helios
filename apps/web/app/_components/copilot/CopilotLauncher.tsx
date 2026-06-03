@@ -6,6 +6,7 @@
  * Dashboard ve Open'a gömülür; sayfa bağlamı `context` prop'undan iletilir.
  */
 
+import { IsolatedErrorBoundary } from "@helios/ui";
 import { useState } from "react";
 
 import { CopilotPanel, type CopilotContextSnapshot } from "./CopilotPanel";
@@ -26,7 +27,11 @@ export function CopilotLauncher({ context }: { context: CopilotContextSnapshot }
           Copilot
         </button>
       )}
-      {open && <CopilotPanel open onClose={() => setOpen(false)} context={context} />}
+      {open && (
+        <IsolatedErrorBoundary label="Copilot stream hatası">
+          <CopilotPanel open onClose={() => setOpen(false)} context={context} />
+        </IsolatedErrorBoundary>
+      )}
     </>
   );
 }

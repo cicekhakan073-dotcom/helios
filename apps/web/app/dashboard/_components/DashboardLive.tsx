@@ -37,7 +37,7 @@ import {
   type ReserveSnapshot,
   type SignAndSendResult,
 } from "@helios/sdk";
-import { HealthFactorBadge, StatTile } from "@helios/ui";
+import { HealthFactorBadge, IsolatedErrorBoundary, StatTile } from "@helios/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -330,13 +330,17 @@ function PositionDetail({
         <DetailRow label="PnL" value="— (Neon meta yükleniyor)" mono />
       </div>
 
-      <HfProjectionChart collateralBase={collateralBase} liabilityBase={liabilityBase} />
+      <IsolatedErrorBoundary label="HF projeksiyon grafiği yüklenemedi">
+        <HfProjectionChart collateralBase={collateralBase} liabilityBase={liabilityBase} />
+      </IsolatedErrorBoundary>
 
-      <RiskRadar
-        collateralBase={collateralBase}
-        liabilityBase={liabilityBase}
-        spotPriceI128={oraclePrice}
-      />
+      <IsolatedErrorBoundary label="Risk Radar (Monte Carlo) yüklenemedi">
+        <RiskRadar
+          collateralBase={collateralBase}
+          liabilityBase={liabilityBase}
+          spotPriceI128={oraclePrice}
+        />
+      </IsolatedErrorBoundary>
 
       <CloseFlow address={address} resolved={resolved} meta={meta} />
 

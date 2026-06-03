@@ -12,6 +12,7 @@
  */
 
 import { effectiveCollateral, effectiveLiability, hfBpsToFloat, type AssetId } from "@helios/sdk";
+import { IsolatedErrorBoundary } from "@helios/ui";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { Group } from "@visx/group";
 import { scaleLinear } from "@visx/scale";
@@ -154,14 +155,20 @@ export function SimulatorClient({ initial }: Props) {
           </div>
         )}
         <SummaryStrip output={output} scenario={scenario} pending={pending} />
-        <EquityFanChart output={output} />
-        <HfBandChart output={output} />
-        <LeverageTradeoff
-          baseScenario={scenario}
-          leverages={compareLeverages}
-          outputs={compareOutputs}
-          onLeveragesChange={setCompareLeverages}
-        />
+        <IsolatedErrorBoundary label="Equity fan grafiği yüklenemedi">
+          <EquityFanChart output={output} />
+        </IsolatedErrorBoundary>
+        <IsolatedErrorBoundary label="HF zaman bandı yüklenemedi">
+          <HfBandChart output={output} />
+        </IsolatedErrorBoundary>
+        <IsolatedErrorBoundary label="Leverage trade-off yüklenemedi">
+          <LeverageTradeoff
+            baseScenario={scenario}
+            leverages={compareLeverages}
+            outputs={compareOutputs}
+            onLeveragesChange={setCompareLeverages}
+          />
+        </IsolatedErrorBoundary>
         <OpenCta scenario={scenario} />
         <p className="text-caption text-text-low m-0">
           ⚠️ Vol varsayımdır (gerçek tarihsel/implied feed entegre değil). Same-asset MVP&apos;de
