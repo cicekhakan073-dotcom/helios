@@ -3,6 +3,14 @@ import { Suspense } from "react";
 
 import { SimulatorClient, type SimulatorScenario } from "./_components/SimulatorClient";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Simulator",
+  description:
+    "Helios hipotetik kaldıraç simülatörü — Monte Carlo P10/P50/P90 + leverage trade-off. Eğitim amaçlıdır.",
+};
+
 /**
  * /simulator — Public Monte Carlo keşif sayfası.
  *

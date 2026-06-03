@@ -418,7 +418,16 @@ function EquityFanChart({ output }: { output: MonteCarloOutput | null }) {
   return (
     <ChartShell title="Equity dağılımı (P10–P50–P90)">
       {fan.length > 0 ? (
-        <svg width={CHART_W} height={CHART_H} role="img" aria-label="Equity fan">
+        <svg
+          width={CHART_W}
+          height={CHART_H}
+          role="img"
+          aria-label={
+            fan.length > 0
+              ? `Equity dağılım grafiği: ${fan.at(-1)?.day} gün, P10-P50-P90 bandı. Son gün medyan ${(fan.at(-1)?.equityP50 ?? 0).toFixed(2)}, P10 ${(fan.at(-1)?.equityP10 ?? 0).toFixed(2)}.`
+              : "Equity dağılım grafiği — veri yok"
+          }
+        >
           <Group left={M.left} top={M.top}>
             <AreaClosed
               data={fan}
@@ -485,7 +494,16 @@ function HfBandChart({ output }: { output: MonteCarloOutput | null }) {
   return (
     <ChartShell title="HF zaman bandı (P10–P50–P90) · likidasyon eşiği 1.00">
       {fan.length > 0 ? (
-        <svg width={CHART_W} height={CHART_H} role="img" aria-label="HF band">
+        <svg
+          width={CHART_W}
+          height={CHART_H}
+          role="img"
+          aria-label={
+            fan.length > 0
+              ? `HF zaman bandı: ${fan.at(-1)?.day} gün, P10-P50-P90. Son gün medyan HF ${(fan.at(-1)?.hfP50 ?? 0).toFixed(2)}, kümülatif likidasyon olasılığı %${((fan.at(-1)?.cumLiqProb ?? 0) * 100).toFixed(1)}. Likidasyon eşiği 1.00.`
+              : "HF zaman bandı — veri yok"
+          }
+        >
           <Group left={M.left} top={M.top}>
             <AreaClosed
               data={fan}
@@ -622,7 +640,17 @@ function LeverageTradeoff({
           );
         })}
       </div>
-      <svg width={TRADE_W} height={TRADE_H} role="img" aria-label="Leverage trade-off">
+      <svg
+        width={TRADE_W}
+        height={TRADE_H}
+        role="img"
+        aria-label={`Leverage trade-off bar grafiği: ${rows.length} senaryo. ${rows
+          .map(
+            (r) =>
+              `${(r.lev / 100).toFixed(2)}× likidasyon olasılığı %${((r.liqProb ?? 0) * 100).toFixed(1)}`,
+          )
+          .join(", ")}.`}
+      >
         <Group left={TM.left} top={TM.top}>
           {rows.map((r) => {
             const barX = x(r.lev / 100) - 16;

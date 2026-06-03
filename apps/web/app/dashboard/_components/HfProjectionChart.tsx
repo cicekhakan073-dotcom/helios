@@ -78,13 +78,24 @@ export function HfProjectionChart({ collateralBase, liabilityBase, shocksPct }: 
     );
   }
 
+  // A11y özet — ekran okuyucular için
+  const currentPoint = points.find((p) => p.shockPct === 0);
+  const liqPoint = points.find((p) => p.hf <= 1.0);
+  const summary = currentPoint
+    ? `HF projeksiyonu: mevcut HF ${currentPoint.hf.toFixed(2)}; ${
+        liqPoint
+          ? `likidasyon eşiği (HF<1.0) yaklaşık %${liqPoint.shockPct} fiyat şokunda.`
+          : "şu fiyat şoku aralığında likidasyon görünmüyor."
+      } Likidasyon eşiği 1.00.`
+    : "HF projeksiyonu hesaplanamadı.";
+
   return (
     <div className="flex flex-col gap-2">
       <header className="flex items-baseline justify-between">
         <h4 className="text-body text-text-high font-semibold m-0">HF / fiyat şoku</h4>
         <span className="text-caption text-text-low">Likidasyon eşiği = 1.00</span>
       </header>
-      <div className="h-56 w-full">
+      <div className="h-56 w-full" role="img" aria-label={summary}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
             <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="2 4" />

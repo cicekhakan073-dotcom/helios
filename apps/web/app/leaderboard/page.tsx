@@ -2,6 +2,14 @@ import { DisclaimerStrip } from "@helios/ui";
 
 import { LeaderboardClient } from "./_components/LeaderboardClient";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+  description:
+    "Helios anonim PnL sıralaması ve paylaşılan stratejiler. Testnet — yatırım tavsiyesi değildir.",
+};
+
 /**
  * /leaderboard — public anonim PnL sıralaması + strateji paylaşımı.
  *

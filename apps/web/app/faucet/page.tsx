@@ -2,6 +2,13 @@ import { DisclaimerStrip } from "@helios/ui";
 
 import { FaucetClient } from "./_components/FaucetClient";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Faucet",
+  description: "Bağlı testnet adresine XLM gönder — Friendbot proxy; Upstash rate-limit.",
+};
+
 /**
  * /faucet — XLM Friendbot proxy + Upstash rate-limit.
  *

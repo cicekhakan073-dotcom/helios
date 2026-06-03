@@ -5,6 +5,14 @@ import { getSession } from "@/lib/auth/session";
 
 import { DashboardLive } from "./_components/DashboardLive";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Helios kaldıraçlı pozisyonun: HF, likidasyon fiyatı, Monte Carlo risk projeksiyonu ve close/opt-in akışları. Testnet.",
+};
+
 /**
  * /dashboard — SEP-10 korumalı sayfa (proxy.ts gate).
  *

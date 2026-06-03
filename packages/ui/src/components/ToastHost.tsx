@@ -54,7 +54,8 @@ function ToastCard({ toast }: { toast: Toast }) {
 
   return (
     <motion.div
-      role="status"
+      role={error.severity === "danger" ? "alert" : "status"}
+      aria-live={error.severity === "danger" ? "assertive" : "polite"}
       data-error-code={error.code}
       initial={{ opacity: 0, y: -8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -69,9 +70,7 @@ function ToastCard({ toast }: { toast: Toast }) {
       <div className="flex-1 min-w-0 flex flex-col gap-0.5">
         <p className="text-body font-semibold m-0 truncate">{error.title}</p>
         <p className="text-caption text-text-medium m-0">{error.description}</p>
-        {error.action && (
-          <p className="text-caption text-text-low m-0 mt-1">→ {error.action}</p>
-        )}
+        {error.action && <p className="text-caption text-text-low m-0 mt-1">→ {error.action}</p>}
       </div>
       <button
         type="button"

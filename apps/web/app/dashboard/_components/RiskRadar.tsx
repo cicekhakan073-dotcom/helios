@@ -166,7 +166,17 @@ export function RiskRadar({ collateralBase, liabilityBase, spotPriceI128 }: Prop
 
       <SummaryBox output={output} horizonDays={horizon} />
 
-      <div className="h-56 w-full">
+      <div
+        className="h-56 w-full"
+        role="img"
+        aria-label={
+          output
+            ? `Monte Carlo HF fan grafiği: ${output.paths} path, ${output.horizonDays} gün, yıllık vol %${(output.annualVolBps / 100).toFixed(0)}. Final medyan HF ${
+                output.fan.at(-1)?.hfP50?.toFixed(2) ?? "—"
+              }, likidasyon olasılığı %${(output.liqProb * 100).toFixed(1)}.`
+            : "Monte Carlo hesaplanıyor."
+        }
+      >
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={fanRows} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
             <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="2 4" />

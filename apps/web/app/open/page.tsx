@@ -2,6 +2,14 @@ import { DisclaimerStrip } from "@helios/ui";
 
 import { OpenWizard } from "./_components/OpenWizard";
 
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Open position",
+  description:
+    "XLM kaldıraçlı pozisyon aç — Stellar/Soroban testnet. Wizard same-asset MVP cap 2×; eğitim amaçlıdır.",
+};
+
 /**
  * /open — Open Position wizard (PROMPT 21).
  *
@@ -17,8 +25,8 @@ export default function OpenPage() {
         <header className="mb-8">
           <h1 className="text-h1 text-text-high m-0">Open position</h1>
           <p className="text-body-lg text-text-medium mt-2 max-w-2xl">
-            Asset seç, principal&apos;ı gir, leverage slider&apos;ını kaydır.
-            Health Factor ve likidasyon fiyatı canlı güncellenir.
+            Asset seç, principal&apos;ı gir, leverage slider&apos;ını kaydır. Health Factor ve
+            likidasyon fiyatı canlı güncellenir.
           </p>
         </header>
         <OpenWizard />
