@@ -20,11 +20,11 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { NextResponse } from "next/server";
 
-import { COPILOT_SYSTEM_PROMPT } from "../../../lib/copilot/system-prompt";
-import { copilotTools } from "../../../lib/copilot/tools";
-
 import { getSession } from "@/lib/auth/session";
 import { rateLimit } from "@/lib/faucet/rate-limit";
+
+import { COPILOT_SYSTEM_PROMPT } from "../../../lib/copilot/system-prompt";
+import { copilotTools } from "../../../lib/copilot/tools";
 
 export const maxDuration = 60; // streaming + tool calls için 60s headroom.
 

@@ -42,6 +42,11 @@ export interface FanPoint {
   hfP90: number;
   /** Bu güne kadar likidasyon kümülatif olasılığı (0..1). */
   cumLiqProb: number;
+  /** Equity (= effective_collateral·(1+priceΔ) − effective_liability) — base units.
+   *  Likide olmuş path'ler 0'a clamp edilir (negatif equity üretmesin). */
+  equityP10: number;
+  equityP50: number;
+  equityP90: number;
 }
 
 export interface HeatmapCell {
@@ -107,7 +112,12 @@ export function simulate(
   // HF[path][day] — bellek için: hfMatrix[day] = sorted HFs across paths.
   // Memory cap: paths=5000, days=30 → 150k float; OK.
   const hfByDay: number[][] = Array.from({ length: days + 1 }, () => new Array<number>(paths));
+  const equityByDay: number[][] = Array.from({ length: days + 1 }, () => new Array<number>(paths));
   const firstLiqDay: Int32Array = new Int32Array(paths).fill(-1);
+  // Base equity (priceΔ=0). Likide path için 0 doldurmak amacıyla referans.
+  const collateralNum = Number(collateral);
+  const liabilityNum = Number(liability);
+  const baseEquity = Math.max(0, collateralNum - liabilityNum);
 
   for (let p = 0; p < paths; p++) {
     if (isCancelled?.()) return null;
@@ -115,6 +125,7 @@ export function simulate(
     let liquidated = false;
     // Day 0 — initial
     hfByDay[0]![p] = hfBpsToFloat(projectHfBps(collateral, liability, 0));
+    equityByDay[0]![p] = baseEquity;
     for (let d = 1; d <= days; d++) {
       const z = gaussian(rng);
       // GBM: log return increment
@@ -137,16 +148,20 @@ export function simulate(
         liquidated = true;
         firstLiqDay[p] = d;
       }
+      // Equity: likide ise 0; değilse collateral*(1+delta) - debt.
+      const equity = liquidated ? 0 : Math.max(0, collateralNum * ratio - liabilityNum);
+      equityByDay[d]![p] = equity;
     }
   }
 
   // Percentiles
   const fan: FanPoint[] = [];
   for (let d = 0; d <= days; d++) {
-    const row = hfByDay[d]!.slice().sort((a, b) => a - b);
-    const p10 = quantile(row, 0.1);
-    const p50 = quantile(row, 0.5);
-    const p90 = quantile(row, 0.9);
+    const hfRow = hfByDay[d]!.slice().sort((a, b) => a - b);
+    const eqRow = equityByDay[d]!.slice().sort((a, b) => a - b);
+    const p10 = quantile(hfRow, 0.1);
+    const p50 = quantile(hfRow, 0.5);
+    const p90 = quantile(hfRow, 0.9);
     let liqHits = 0;
     for (let p = 0; p < paths; p++) {
       const f = firstLiqDay[p]!;
@@ -158,6 +173,9 @@ export function simulate(
       hfP50: clamp(p50, 0, 5),
       hfP90: clamp(p90, 0, 5),
       cumLiqProb: liqHits / paths,
+      equityP10: quantile(eqRow, 0.1),
+      equityP50: quantile(eqRow, 0.5),
+      equityP90: quantile(eqRow, 0.9),
     });
   }
 

@@ -79,12 +79,17 @@ export default tseslint.config(
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
       ],
       // import sıralama
+      // PROMPT 28 fix: `@/` alias'ı "internal" grubuna sabitle ki standalone
+      // `eslint .` ile lint-staged pre-commit aynı sırayı üretsin (3 sticky
+      // import-order warning kalıcı kapanır).
       "import-x/order": [
         "warn",
         {
           groups: ["builtin", "external", "internal", "parent", "sibling", "index", "type"],
           "newlines-between": "always",
           alphabetize: { order: "asc", caseInsensitive: true },
+          pathGroups: [{ pattern: "@/**", group: "internal", position: "before" }],
+          pathGroupsExcludedImportTypes: ["builtin"],
         },
       ],
       "import-x/no-duplicates": "error",

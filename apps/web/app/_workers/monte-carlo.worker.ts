@@ -24,6 +24,9 @@ interface RunMessage {
   id: number;
   type: "run";
   params: MonteCarloInput;
+  /** Opsiyonel — yanıtta echo edilir (ör. karşılaştırma senaryoları için
+   *  `{ leverageBps }` etiketi). */
+  meta?: Record<string, unknown>;
 }
 interface CancelMessage {
   id: number;
@@ -35,6 +38,7 @@ interface ResultMessage {
   id: number;
   type: "result";
   data: MonteCarloOutput;
+  meta?: Record<string, unknown>;
 }
 interface ErrorMessage {
   id: number;
@@ -66,7 +70,12 @@ self.onmessage = (e: MessageEvent<InboundMessage>) => {
       cancelledIds.delete(msg.id);
       return;
     }
-    const reply: ResultMessage = { id: msg.id, type: "result", data: out };
+    const reply: ResultMessage = {
+      id: msg.id,
+      type: "result",
+      data: out,
+      ...(msg.meta ? { meta: msg.meta } : {}),
+    };
     (self as unknown as Worker).postMessage(reply);
   } catch (err) {
     const reply: ErrorMessage = {

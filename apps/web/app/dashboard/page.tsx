@@ -1,9 +1,9 @@
 import { Card, DisclaimerStrip } from "@helios/ui";
 import { Suspense } from "react";
 
-import { DashboardLive } from "./_components/DashboardLive";
-
 import { getSession } from "@/lib/auth/session";
+
+import { DashboardLive } from "./_components/DashboardLive";
 
 /**
  * /dashboard — SEP-10 korumalı sayfa (proxy.ts gate).
