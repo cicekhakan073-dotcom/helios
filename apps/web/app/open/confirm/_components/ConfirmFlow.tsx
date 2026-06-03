@@ -18,9 +18,9 @@
  *  optimistic patch bu hook'un cache'ine yazılır.
  */
 
-
 import {
   ASSET_META,
+  fetchPoolOraclePrice,
   normalizeError,
   positionQueryKey,
   pushAppError,
@@ -37,7 +37,12 @@ import { updateTag } from "next/cache";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { formatLeverage, formatPrincipal, parsePrincipal, useWizard } from "../../_state/wizard-store";
+import {
+  formatLeverage,
+  formatPrincipal,
+  parsePrincipal,
+  useWizard,
+} from "../../_state/wizard-store";
 
 export function ConfirmFlow() {
   const address = useWalletStore(selectAddress);
@@ -98,6 +103,25 @@ export function ConfirmFlow() {
         // client'tan çağrı sessiz fail edebilir — DB write authoritative indexer'a
         // bırakıldığı için bu güvenli.
       }
+      // PROMPT 30 — entry-price snapshot (§6.4 PnL gap fix). DB yokken sessiz başarı.
+      if (principal) {
+        void (async () => {
+          const oracle = await fetchPoolOraclePrice(assetId);
+          if (!oracle) return;
+          await fetch("/api/positions/snapshot", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              asset: assetId,
+              leverageBps,
+              principalRaw: principal.toString(),
+              entryPriceI128: oracle.price.toString(),
+            }),
+          }).catch(() => {
+            /* sessiz */
+          });
+        })();
+      }
     },
     onError: (err) => {
       const app = normalizeError(err);
@@ -110,7 +134,11 @@ export function ConfirmFlow() {
     return (
       <Panel>
         <p className="text-body text-text-medium m-0">
-          Cüzdan bağlı değil. <Link href="/open" className="underline text-aurora-teal">Wizard&apos;a dön</Link> ve önce cüzdanı bağla.
+          Cüzdan bağlı değil.{" "}
+          <Link href="/open" className="underline text-aurora-teal">
+            Wizard&apos;a dön
+          </Link>{" "}
+          ve önce cüzdanı bağla.
         </p>
       </Panel>
     );
@@ -120,7 +148,11 @@ export function ConfirmFlow() {
     return (
       <Panel>
         <p className="text-body text-text-medium m-0">
-          Eksik parametre — principal girilmemiş ya da geçersiz. <Link href="/open" className="underline text-aurora-teal">Wizard</Link>&apos;a dön.
+          Eksik parametre — principal girilmemiş ya da geçersiz.{" "}
+          <Link href="/open" className="underline text-aurora-teal">
+            Wizard
+          </Link>
+          &apos;a dön.
         </p>
       </Panel>
     );
@@ -131,16 +163,23 @@ export function ConfirmFlow() {
     return (
       <Panel data-state="success">
         <header className="flex items-center gap-3">
-          <span aria-hidden className="inline-block w-3 h-3 rounded-full bg-aurora-teal shadow-glow-teal" />
+          <span
+            aria-hidden
+            className="inline-block w-3 h-3 rounded-full bg-aurora-teal shadow-glow-teal"
+          />
           <h2 className="text-h2 text-text-high m-0">Pozisyon açıldı</h2>
         </header>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 text-body">
           <dt className="text-text-low">Tx hash</dt>
-          <dd className="text-text-high font-mono break-all m-0" data-tx-hash>{result.hash}</dd>
+          <dd className="text-text-high font-mono break-all m-0" data-tx-hash>
+            {result.hash}
+          </dd>
           {result.ledger != null && (
             <>
               <dt className="text-text-low">Ledger</dt>
-              <dd className="text-text-high font-mono tabular m-0" data-num>{result.ledger}</dd>
+              <dd className="text-text-high font-mono tabular m-0" data-num>
+                {result.ledger}
+              </dd>
             </>
           )}
         </dl>
@@ -164,9 +203,8 @@ export function ConfirmFlow() {
           </Link>
         </div>
         <p className="text-caption text-text-low m-0">
-          ⓘ Pozisyon meta&apos;sı şu an optimistic gösterimde. Authoritative kayıt indexer
-          (PROMPT 29) tarafından yazılır; sayfayı yenilersen Blend pool authoritative
-          state&apos;i okunur.
+          ⓘ Pozisyon meta&apos;sı şu an optimistic gösterimde. Authoritative kayıt indexer (PROMPT
+          29) tarafından yazılır; sayfayı yenilersen Blend pool authoritative state&apos;i okunur.
         </p>
       </Panel>
     );
@@ -190,8 +228,8 @@ export function ConfirmFlow() {
       <header>
         <h2 className="text-h2 text-text-high m-0">Tx önizleme</h2>
         <p className="text-caption text-text-low m-0 mt-1">
-          Simulate ile footprint + resource fee yapıştırıldı. İmza sonrası tek atomik
-          tx olarak gönderilir.
+          Simulate ile footprint + resource fee yapıştırıldı. İmza sonrası tek atomik tx olarak
+          gönderilir.
         </p>
       </header>
 
