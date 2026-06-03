@@ -41,6 +41,7 @@ export * from "./helios/router";
 export * from "./helios/open-position";
 export * from "./helios/close-position";
 export * from "./helios/opt-in";
+export * from "./helios/approve";
 export {
   simulatePreparedTx,
   signAndSendPreparedTx,

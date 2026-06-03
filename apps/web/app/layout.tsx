@@ -34,8 +34,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  // suppressHydrationWarning: Stellar Wallets Kit client'ta <html>'e --swk-* CSS
+  // değişkenleri enjekte ediyor → server/client style uyuşmazlığı (zararsız, 3rd-party).
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <body>
         <Providers>
           {/* A11y: klavye kullanıcıları için skip link (PROMPT 33 WCAG AA). */}

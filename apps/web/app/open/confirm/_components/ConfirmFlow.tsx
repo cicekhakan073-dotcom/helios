@@ -19,6 +19,7 @@
  */
 
 import {
+  approvePoolSpend,
   ASSET_META,
   fetchPoolOraclePrice,
   normalizeError,
@@ -67,6 +68,8 @@ export function ConfirmFlow() {
 
   const queryClient = useQueryClient();
   const [result, setResult] = useState<SignAndSendResult | null>(null);
+  /** Akış adımı: open_position'dan önce pool'a allowance (approve) verilir. */
+  const [step, setStep] = useState<"idle" | "approving">("idle");
 
   const sendM = useOpenPositionSend({
     onSuccess: (res) => {
@@ -215,21 +218,26 @@ export function ConfirmFlow() {
   const simError = simQ.error;
   const preview = simQ.data;
 
-  const disabledReason: string | null = sendM.isPending
-    ? "İmza bekleniyor…"
-    : !preview
-      ? isSimulating
-        ? "Simulate çalışıyor"
-        : "Simulate sonucu yok"
-      : null;
+  const busy = step === "approving" || sendM.isPending;
+  const disabledReason: string | null =
+    step === "approving"
+      ? "1/2 · Pool allowance (approve) imzalanıyor…"
+      : sendM.isPending
+        ? "2/2 · Pozisyon açılıyor…"
+        : !preview
+          ? isSimulating
+            ? "Simulate çalışıyor"
+            : "Simulate sonucu yok"
+          : null;
 
   return (
     <Panel>
       <header>
         <h2 className="text-h2 text-text-high m-0">Tx önizleme</h2>
         <p className="text-caption text-text-low m-0 mt-1">
-          Simulate ile footprint + resource fee yapıştırıldı. İmza sonrası tek atomik tx olarak
-          gönderilir.
+          İki imza gerekir: (1) pool&apos;a {assetId} harcama izni (allowance — Blend
+          collateral&apos;ı
+          <span className="font-mono"> transfer_from</span> ile çeker), (2) atomik open_position.
         </p>
       </header>
 
@@ -276,14 +284,37 @@ export function ConfirmFlow() {
         <Button
           variant="primary"
           size="lg"
-          disabled={!preview || sendM.isPending}
+          disabled={!preview || busy || !principal}
           onClick={() => {
-            if (!preview) return;
-            sendM.mutate({ preparedTx: preview.preparedTx, userAddress: address });
+            if (!preview || !principal) return;
+            // Blend pool collateral'ı transfer_from ile çeker → önce allowance şart (#9 fix).
+            void (async () => {
+              setStep("approving");
+              try {
+                const totalCollateral = (principal * BigInt(leverageBps)) / 100n;
+                const approveAmount = (totalCollateral * 102n) / 100n; // +%2 tampon
+                await approvePoolSpend({ userAddress: address, assetId, amount: approveAmount });
+                // approve account sequence'ini ilerletti → open sim'i tazele (taze sequence)
+                const fresh = await simQ.refetch();
+                setStep("idle");
+                if (fresh.data) {
+                  sendM.mutate({ preparedTx: fresh.data.preparedTx, userAddress: address });
+                } else {
+                  pushAppError(
+                    normalizeError(
+                      new Error("Approve sonrası simulate tazelenemedi — tekrar dene."),
+                    ),
+                  );
+                }
+              } catch (e) {
+                setStep("idle");
+                pushAppError(normalizeError(e));
+              }
+            })();
           }}
           data-cta="sign-and-send"
         >
-          {sendM.isPending ? "Cüzdan açılıyor…" : "Sign & Send"}
+          {step === "approving" ? "1/2 Onay…" : sendM.isPending ? "2/2 Açılıyor…" : "Onayla & Aç"}
         </Button>
         <Link
           href="/open"
