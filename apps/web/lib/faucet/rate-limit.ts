@@ -78,11 +78,23 @@ export async function rateLimit(key: string): Promise<RateLimitVerdict> {
     }
   }
   if (cached.kind === "memory") return memoryCheck(key);
-  const res = await cached.limiter.limit(key);
-  return {
-    ok: res.success,
-    remaining: res.remaining,
-    reset: res.reset,
-    backend: "redis",
-  };
+  try {
+    const res = await cached.limiter.limit(key);
+    return {
+      ok: res.success,
+      remaining: res.remaining,
+      reset: res.reset,
+      backend: "redis",
+    };
+  } catch (err) {
+    // Upstash erişilemedi / geçersiz kimlik (örn. placeholder env) → route'u
+    // ÇÖKERTME; in-memory fallback'e geç ve cached'i kalıcı memory yap (her istekte
+    // tekrar deneme). Canlı doğrulandı 2026-06-03: placeholder Upstash → limit() throw → 500.
+    console.warn(
+      "[helios/faucet] Upstash limit() başarısız — in-memory fallback'e geçiliyor:",
+      err instanceof Error ? err.message : String(err),
+    );
+    cached = { kind: "memory" };
+    return memoryCheck(key);
+  }
 }

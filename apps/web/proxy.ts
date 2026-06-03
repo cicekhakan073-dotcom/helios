@@ -54,8 +54,10 @@ export default async function proxy(req: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(signInUrl);
   }
 
-  // Oturum geçerli — devam et + debug header (sub kısaltılmış)
-  headers.set("x-helios-auth", `${session.sub.slice(0, 4)}…${session.sub.slice(-4)}`);
+  // Oturum geçerli — devam et + debug header (sub kısaltılmış).
+  // NOT: header değeri Latin1 (ByteString) olmalı — Unicode "…" (U+2026) `Headers.set`'i
+  // çökertir ("character > 255"); ASCII ".." kullan (canlı doğrulandı 2026-06-03).
+  headers.set("x-helios-auth", `${session.sub.slice(0, 4)}..${session.sub.slice(-4)}`);
   return NextResponse.next({ headers });
 }
 
