@@ -5,8 +5,8 @@ import { motion } from "motion/react";
 import Link from "next/link";
 
 /**
- * Hero — demo'nun 0-10s hook'u.
- * Slogan + 2 CTA + üretim-kalite mikroinetiraksiyonlar.
+ * Hero — the 0-10s hook of the demo.
+ * Tagline + 2 CTAs + production-quality microinteractions.
  */
 export function Hero() {
   return (
@@ -32,8 +32,8 @@ export function Hero() {
           {brand.tagline}
         </h1>
         <p className="text-body-lg text-text-medium m-0 max-w-2xl">
-          Tek atomik tx&apos;te flash loan + Blend lending döngüsüyle kaldıraçlı pozisyon aç. AI
-          Copilot ve Risk Radar ile riskin şeffaf. ⚠️ Sadece testnet — yatırım tavsiyesi değildir.
+          Open a leveraged position in a single atomic tx via a flash loan + Blend lending loop.
+          Transparent risk with AI Copilot and Risk Radar. ⚠️ Testnet only — not financial advice.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 mt-2">
           <Link

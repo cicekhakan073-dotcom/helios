@@ -7,43 +7,43 @@ const STEPS = [
   {
     icon: ArrowDownToLine,
     title: "Flash borrow",
-    desc: "Blend pool'dan flash kredi al — geri ödeme aynı tx içinde.",
+    desc: "Take a flash loan from the Blend pool — repaid within the same tx.",
     color: "text-aurora-amber",
   },
   {
     icon: ArrowUpFromLine,
     title: "Supply collateral",
-    desc: "Kullanıcının teminatı + flash miktarı pool'a supply edilir.",
+    desc: "The user's collateral + the flash amount are supplied to the pool.",
     color: "text-aurora-mauve",
   },
   {
     icon: ArrowRightLeft,
     title: "Borrow",
-    desc: "Pool'dan borç alınır — flash repayment'ı karşılayacak miktar.",
+    desc: "Borrow from the pool — enough to cover the flash repayment.",
     color: "text-aurora-teal",
   },
   {
     icon: Repeat,
     title: "Flash repay",
-    desc: "Flash kredi + Blend fee aynı tx'te geri ödenir — atomik.",
+    desc: "The flash loan + Blend fee are repaid in the same tx — atomic.",
     color: "text-success",
   },
 ] as const;
 
 /**
- * 4 adım atomik flash-loan döngüsü — Framer Motion stagger.
- * Tek tx vurgusu en altta.
+ * The 4-step atomic flash-loan loop — Framer Motion stagger.
+ * Single-tx emphasis at the bottom.
  */
 export function HowItWorks() {
   return (
     <section id="how-it-works" className="relative py-20 px-6">
       <div className="mx-auto max-w-5xl flex flex-col gap-10">
         <div className="text-center">
-          <h2 className="text-h1 text-text-high m-0">Tek atomik tx</h2>
+          <h2 className="text-h1 text-text-high m-0">One atomic tx</h2>
           <p className="text-body-lg text-text-medium mt-3 max-w-2xl mx-auto">
-            Soroban&apos;da tx başına tek <code>InvokeHostFunctionOp</code>. Helios bu kısıt
-            içinde Blend pool&apos;un <code>flash_loan(from, FlashLoan, requests)</code> fn&apos;ini
-            çağırır — herhangi bir adım fail ederse tüm akış geri alınır.
+            A single <code>InvokeHostFunctionOp</code> per tx on Soroban. Within that constraint
+            Helios calls the Blend pool&apos;s <code>flash_loan(from, FlashLoan, requests)</code>{" "}
+            function — if any step fails, the whole flow is reverted.
           </p>
         </div>
         <ol className="grid grid-cols-1 md:grid-cols-4 gap-4 list-none p-0 m-0">
@@ -66,8 +66,8 @@ export function HowItWorks() {
           ))}
         </ol>
         <p className="text-caption text-text-low text-center max-w-xl mx-auto">
-          ⚠️ Herhangi bir adımda revert olursa pozisyon hiç açılmaz — kullanıcı fonları güvende.
-          Testnet · unaudited demo.
+          ⚠️ If any step reverts, the position is never opened — user funds stay safe. Testnet ·
+          unaudited demo.
         </p>
       </div>
     </section>

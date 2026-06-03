@@ -1,26 +1,23 @@
 import { cacheLife, cacheTag } from "next/cache";
 
 /**
- * APY tablosu — `"use cache"` directive ile fonksiyon seviyesinde cache.
+ * APY table — function-level cache via the `"use cache"` directive.
  *
- * - `cacheLife({ revalidate: 300 })` → 5 dk önbellek
- * - `cacheTag('apy')` → PROMPT 22'de tx success sonrası invalidate edilebilir
+ * - `cacheLife({ revalidate: 300 })` → 5 min cache
+ * - `cacheTag('apy')` → can be invalidated after a tx success
  *
- * Veri kaynağı: testnet üzerinde Blend pool reserve'lerinden okunabilir
- * (`@helios/sdk` `loadPoolReserves`), ancak mock SEP-41 tokenları PROMPT 24
- * öncesi yok → şu an **statik tahmini APY** ile gösteriyoruz (etiket: "tahmini · testnet").
- * Gerçek veri akışı PROMPT 24 sonrası bu fn'i değiştirir; cache invalidation
- * `cacheTag('apy')` ile.
+ * Data source: can be read from Blend pool reserves on testnet
+ * (`@helios/sdk` `loadPoolReserves`); for now we show **static estimated APY**
+ * (label: "estimated · testnet"). The cache is invalidated via `cacheTag('apy')`.
  */
 async function loadApyRows(): Promise<ApyRow[]> {
   "use cache";
   cacheLife({ revalidate: 300 });
   cacheTag("apy");
 
-  // ⚠️ Tahmini değerler (testnet). Gerçek hesap PROMPT 24 sonrası
-  // Blend reserve.data.b_rate / d_rate'den türetilecek.
-  // `await Promise.resolve(...)` lint'in async require'ını karşılar — gerçek
-  // RPC fetch geldiğinde bu satır gerçek await olur.
+  // ⚠️ Estimated values (testnet). Real numbers would be derived from
+  // Blend reserve.data.b_rate / d_rate. `await Promise.resolve(...)` satisfies
+  // the lint async requirement — becomes a real await when an RPC fetch is wired.
   return await Promise.resolve<ApyRow[]>([
     { asset: "USDC", supplyApy: 5.2, borrowApy: 8.4, leverage: 3, estLeveragedApy: 9.6 },
     { asset: "XLM", supplyApy: 4.8, borrowApy: 7.2, leverage: 2, estLeveragedApy: 7.2 },
@@ -37,7 +34,7 @@ interface ApyRow {
   estLeveragedApy: number;
 }
 
-/** RSC — server'da render, `"use cache"` direktifiyle 5dk cache. */
+/** RSC — rendered on the server, 5 min cache via the `"use cache"` directive. */
 export async function ApyTable() {
   const rows = await loadApyRows();
   return (
@@ -47,11 +44,11 @@ export async function ApyTable() {
           <div>
             <h2 className="text-h1 text-text-high m-0">Vaults</h2>
             <p className="text-body text-text-medium mt-1 max-w-2xl">
-              Helios MVP&apos;de tek-asset kaldıraçlı stratejiler.
+              Single-asset leveraged strategies in the Helios MVP.
             </p>
           </div>
           <span className="text-micro uppercase tracking-wider rounded-sm bg-warn-soft text-warn px-2 py-1">
-            Tahmini · Testnet
+            Estimated · Testnet
           </span>
         </div>
         <div className="overflow-x-auto rounded-lg border border-border-default bg-space-700">
@@ -62,7 +59,7 @@ export async function ApyTable() {
                 <th className="text-right p-3">Supply APY</th>
                 <th className="text-right p-3">Borrow APY</th>
                 <th className="text-right p-3">Leverage</th>
-                <th className="text-right p-3 text-text-high">Tahmini Leveraged APY</th>
+                <th className="text-right p-3 text-text-high">Est. Leveraged APY</th>
               </tr>
             </thead>
             <tbody>
@@ -87,8 +84,8 @@ export async function ApyTable() {
           </table>
         </div>
         <p className="text-caption text-text-low m-0">
-          ⚠️ Tahmini APY = supply &times; leverage − borrow &times; (leverage − 1). Yatırım tavsiyesi değildir,
-          gerçek getiri fiyat oynaması ve likidasyon riskine bağlıdır.
+          ⚠️ Estimated APY = supply &times; leverage − borrow &times; (leverage − 1). Not financial
+          advice; actual return depends on price movement and liquidation risk.
         </p>
       </div>
     </section>
