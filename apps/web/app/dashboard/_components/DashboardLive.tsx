@@ -42,6 +42,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { CopilotLauncher } from "../../_components/copilot/CopilotLauncher";
 import { formatPrincipal } from "../../open/_state/wizard-store";
 
 import { HfProjectionChart } from "./HfProjectionChart";
@@ -156,6 +157,21 @@ export function DashboardLive({ address }: Props) {
         hf={hfComputed}
       />
       <OptInPanel address={address} />
+      <CopilotLauncher
+        context={{
+          page: "dashboard",
+          position: {
+            assetId: resolved.assetId,
+            collateralUnderlying: Number(resolved.collateralUnderlying) / 10 ** meta.decimals,
+            debtUnderlying: Number(resolved.debtUnderlying) / 10 ** meta.decimals,
+            hfFloat: hfComputed ? hfBpsToFloat(hfComputed.hfBps) : null,
+            leverageX:
+              positionQ.data?.effectiveLeverageBps != null
+                ? positionQ.data.effectiveLeverageBps / 100
+                : null,
+          },
+        }}
+      />
     </>
   );
 }

@@ -18,3 +18,4 @@ minimumReleaseAgeExclude:
   - tinyexec@1.2.4
   - "@ai-sdk/gateway@3.0.123"
   - ai@6.0.195
+  - "@ai-sdk/react@3.0.197"

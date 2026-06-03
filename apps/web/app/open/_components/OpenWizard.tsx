@@ -1,5 +1,8 @@
 "use client";
 
+import { CopilotLauncher } from "../../_components/copilot/CopilotLauncher";
+import { useWizard } from "../_state/wizard-store";
+
 import { AssetPicker } from "./AssetPicker";
 import { LeverageSlider } from "./LeverageSlider";
 import { LivePreview, useLivePreview } from "./LivePreview";
@@ -16,6 +19,9 @@ import { SummaryPanel } from "./SummaryPanel";
  */
 export function OpenWizard() {
   const preview = useLivePreview();
+  const assetId = useWizard((s) => s.assetId);
+  const leverageBps = useWizard((s) => s.leverageBps);
+  const principalRaw = useWizard((s) => s.principalRaw);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
@@ -28,6 +34,12 @@ export function OpenWizard() {
         <LivePreview result={preview} />
         <SummaryPanel preview={preview} />
       </div>
+      <CopilotLauncher
+        context={{
+          page: "open",
+          wizard: { assetId, leverageBps, principalRaw },
+        }}
+      />
     </div>
   );
 }
